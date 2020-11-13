@@ -38,7 +38,7 @@ Before submitting a pull request:
 
 ## Requirements
 
-If the project maintainer author_username has any additional requirements, you will find them listed here.
+If the project maintainer cinemapub has any additional requirements, you will find them listed here.
 
 - **[PSR-2 Coding Standard](https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-2-coding-style-guide.md)** - The easiest way to apply the conventions is to install [PHP Code Sniffer](https://pear.php.net/package/PHP_CodeSniffer).
 

@@ -1,35 +1,56 @@
-# ts_php_template
+# Analyze video,audio,image files (with ffmpeg)
 
-![Run Tests](https://github.com/toolstud-io/ts_php_template/workflows/Run%20Tests/badge.svg)
-![Detect Psalm warnings](https://github.com/toolstud-io/ts_php_template/workflows/Detect%20Psalm%20warnings/badge.svg)
-![Check & fix styling](https://github.com/toolstud-io/ts_php_template/workflows/Check%20&%20fix%20styling/badge.svg)
+Github: 
+![GitHub tag](https://img.shields.io/github/v/tag/cinemapub/spx_media_analyzer)
+![Tests](https://github.com/cinemapub/spx_media_analyzer/workflows/Run%20Tests/badge.svg)
+![Psalm](https://github.com/cinemapub/spx_media_analyzer/workflows/Detect%20Psalm%20warnings/badge.svg)
+![Styling](https://github.com/cinemapub/spx_media_analyzer/workflows/Check%20&%20fix%20styling/badge.svg)
 
-Base package template for development of open source PHP packages
+Packagist: 
+[![Packagist Version](https://img.shields.io/packagist/v/cinemapub/spx_media_analyzer.svg?style=flat-square)](https://packagist.org/packages/cinemapub/spx_media_analyzer)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/cinemapub/spx_media_analyzer.svg?style=flat-square)](https://packagist.org/packages/cinemapub/spx_media_analyzer)
 
-_Created on 2020-07-30 by Peter Forret for toolstud.io_
+Analyze video,audio,image files (with ffmpeg)
+
+	created on 2020-11-13 by p.forret@brightfish.be
+
+## Installation
+
+You can install the package via composer:
+
+```bash
+composer require cinemapub/spx_media_analyzer
+```
 
 ## Usage
 
-* on https://github.com/toolstud-io/ts_php_template
-* click on 'Use this template'
-* choose the name of your new package
-* `git clone <your github>/<your_new_package>`
-* `cd <your_new_package>`
-* `./first_run_this.sh`
-* answer all the questions correctly
-* taadaa!
+``` php
+$obj = new Cinemapub\SpxMediaAnalyzer();
+echo $obj->echoPhrase('Hello, cinemapub!');
+```
 
-## Inspiration
+## Testing
 
-* from https://github.com/spatie/package-skeleton-php
+``` bash
+composer test
+```
+
+## Changelog
+
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
+## Security
+
+If you discover any security related issues, please email author_email instead of using the issue tracker.
+
 ## Credits
 
-- [Peter Forret](https://github.com/pforret)
+- [Peter Forret](https://github.com/cinemapub)
+- [All Contributors](../../contributors)
 
 ## License
 

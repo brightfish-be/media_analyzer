@@ -1,7 +1,7 @@
 <?php
-// Author: author_name (author_username, author@email.com)
-namespace package_namespace;
+// Author: Peter Forret (cinemapub, p.forret@brightfish.be)
+namespace Cinemapub;
 
-class class_name
+class SpxMediaAnalyzer
 {
 }

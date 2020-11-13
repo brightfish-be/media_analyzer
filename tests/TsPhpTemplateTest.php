@@ -1,6 +1,6 @@
 <?php
 
-namespace package_namespace\Tests;
+namespace Cinemapub\Tests;
 
 use PHPUnit\Framework\TestCase;
 

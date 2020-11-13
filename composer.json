@@ -1,17 +1,17 @@
 {
-    "name": "author_username/package_name",
+    "name": "cinemapub/spx_media_analyzer",
     "version": "1.1.1",
-    "description": "package_description",
+    "description": "Analyze video,audio,image files (with ffmpeg)",
     "keywords": [
-        "author_username",
-        "package_name"
+        "cinemapub",
+        "spx_media_analyzer"
     ],
-    "homepage": "https://github.com/author_username/package_name",
+    "homepage": "https://github.com/cinemapub/spx_media_analyzer",
     "license": "MIT",
     "authors": [
         {
-            "name": "author_name",
-            "email": "author@email.com",
+            "name": "Peter Forret",
+            "email": "p.forret@brightfish.be",
             "role": "Developer"
         }
     ],
@@ -25,12 +25,12 @@
     },
     "autoload": {
         "psr-4": {
-            "package_namespace\\class_name\\": "src"
+            "Cinemapub\\SpxMediaAnalyzer\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "package_namespace\\class_name\\Tests\\": "tests"
+            "Cinemapub\\SpxMediaAnalyzer\\Tests\\": "tests"
         }
     },
     "scripts": {
