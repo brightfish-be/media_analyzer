@@ -21,7 +21,7 @@ class AnalyzerTest extends TestCase
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny.m4a");
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny.mp3");
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.mp4");
-        $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.wavZZ");
+        $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.wav");
         $this->assertGreaterThan(0,$analysis,"fake");
     }
 }
