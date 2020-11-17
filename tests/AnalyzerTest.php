@@ -2,10 +2,10 @@
 
 namespace Brightfish\SpxMediaAnalyzer\Tests;
 
-use Brightfish\SpxMediaAnalyzer\analyzer;
+use Brightfish\SpxMediaAnalyzer\Analyzer;
 use PHPUnit\Framework\TestCase;
 
-class analyzerTest extends TestCase
+class AnalyzerTest extends TestCase
 {
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')
@@ -21,7 +21,7 @@ class analyzerTest extends TestCase
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny.m4a");
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny.mp3");
         $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.mp4");
-        $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.wav");
+        $analysis=(new Analyzer)->analyze("$exampleFolder/sources/big_buck_bunny5.wavZZ");
         $this->assertGreaterThan(0,$analysis,"fake");
     }
 }

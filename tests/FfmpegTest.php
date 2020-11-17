@@ -2,17 +2,17 @@
 
 namespace Brightfish\SpxMediaAnalyzer\Tests;
 
-use Brightfish\SpxMediaAnalyzer\ffmpeg;
+use Brightfish\SpxMediaAnalyzer\Ffmpeg;
 use \Exception;
 use PHPUnit\Framework\TestCase;
 
-class ffmpegTest extends TestCase
+class FfmpegTest extends TestCase
 {
-    /**
-     * @var ffmpeg
-     */
-    private $ffmpeg;
     private string $tempFolder;
+    /**
+     * @var Ffmpeg
+     */
+    private Ffmpeg $ffmpeg;
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
@@ -20,8 +20,6 @@ class ffmpegTest extends TestCase
         $this->ffmpeg=New ffmpeg();
         $this->tempFolder=__DIR__ . "/" . "temp";
         if(!is_dir($this->tempFolder))  mkdir($this->tempFolder);
-        $this->ffmpeg->cache_to_folder($this->tempFolder);
-        $this->ffmpeg->log_to_folder($this->tempFolder);
     }
 
     public function testUse_ffmpeg()
@@ -39,6 +37,8 @@ class ffmpegTest extends TestCase
 
     public function testRun(){
         $exampleFolder=__DIR__;
+        $this->ffmpeg->cache_to_folder($this->tempFolder);
+        $this->ffmpeg->log_to_folder($this->tempFolder);
         $output=$this->ffmpeg->run_ffmpeg("$exampleFolder/sources/example.mp4","-",[],true);
         $this->assertGreaterThan(0,count($output),"lines");
     }
