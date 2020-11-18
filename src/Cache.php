@@ -6,19 +6,9 @@ namespace Brightfish\SpxMediaAnalyzer;
 class Cache
 {
 
-
-    /**
-     * @var string
-     */
-    private $prefix;
-    /**
-     * @var int
-     */
-    private $expiration;
-    /**
-     * @var string
-     */
-    private $folder;
+    private string $prefix;
+    private int $expiration;
+    private string $folder;
 
     public function __construct(string $folder, int $expiration = 3600, string $prefix = 'cache')
     {
