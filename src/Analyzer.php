@@ -76,6 +76,7 @@ class Analyzer
             }
             $input_id++;
         }
+
         return $meta;
     }
 
@@ -214,22 +215,34 @@ class Analyzer
             $data["width"] = (int)$w;
             $data["height"] = (int)$h;
             $data["pixels"] = (int)$w * (int)$h;
-            $data["dar"] = $this->find($line,"|dar ([\d\.:]+)|");
+            $data["dar"] = $this->find($line, "|dar ([\d\.:]+)|");
             $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
-                    $data["aspect_type"] = "hd"; break;
+                    $data["aspect_type"] = "hd";
+
+break;
                 case 1.90:
-                    $data["aspect_type"] = "dcp"; break;
+                    $data["aspect_type"] = "dcp";
+
+break;
                 case 1.85:
-                    $data["aspect_type"] = "flat"; break;
+                    $data["aspect_type"] = "flat";
+
+break;
                 case 2.35:
                 case 2.39:
-                    $data["aspect_type"] = "scope"; break;
+                    $data["aspect_type"] = "scope";
+
+break;
                 case 1.33:
-                    $data["aspect_type"] = "tv"; break;
+                    $data["aspect_type"] = "tv";
+
+break;
                 case 1:
-                    $data["aspect_type"] = "square"; break;
+                    $data["aspect_type"] = "square";
+
+break;
             }
         }
         $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
@@ -259,16 +272,19 @@ class Analyzer
         return $data;
     }
 
-    private function parse_data_line($line): array{
-        $data=[];
-        $data["_raw"] = trim($this->find($line,"|Data:\s+(.*)|"));
+    private function parse_data_line($line): array
+    {
+        $data = [];
+        $data["_raw"] = trim($this->find($line, "|Data:\s+(.*)|"));
+
         return $data;
     }
 
     // ----------------------------------------------------------------------------------------------------
 
-    public function get_file_meta(string $path): array{
-        $data=[];
+    public function get_file_meta(string $path): array
+    {
+        $data = [];
         $data["name"] = basename($path);
         $data["extension"] = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         $data["folder"] = pathinfo($path, PATHINFO_DIRNAME);
@@ -280,8 +296,9 @@ class Analyzer
         return $data;
     }
 
-    public function split_on(string $text,string $pattern){
-        return preg_split($pattern,$text);
+    public function split_on(string $text, string $pattern)
+    {
+        return preg_split($pattern, $text);
     }
 
     private function find(string $haystack, string $pattern): string
@@ -294,7 +311,7 @@ class Analyzer
         return "";
     }
 
-    private function find_label(string $haystack, string $label, &$array=false): string
+    private function find_label(string $haystack, string $label, &$array = false): string
     {
         $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
         if ($nb) {

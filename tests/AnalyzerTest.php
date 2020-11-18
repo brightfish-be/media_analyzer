@@ -16,10 +16,10 @@ class AnalyzerTest extends TestCase
     {
         $exampleFolder = __DIR__;
 
-        $analysis=(new Analyzer)->meta("$exampleFolder/sources/example.gif");
+        $analysis = (new Analyzer)->meta("$exampleFolder/sources/example.gif");
         print_r($analysis);
-        $this->assertTrue($analysis["file"]["size"] === 8476,"gif file: file size");
-        $this->assertTrue($analysis["video"]["size"] === "32x32","gif file: video size");
+        $this->assertTrue($analysis["file"]["size"] === 8476, "gif file: file size");
+        $this->assertTrue($analysis["video"]["size"] === "32x32", "gif file: video size");
 
         $analysis = (new Analyzer)->meta("$exampleFolder/sources/example.mp4");
         $this->assertEquals("h264", $analysis["video"]["codec"], "mp4 file: video codec");
