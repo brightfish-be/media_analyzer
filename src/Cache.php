@@ -5,7 +5,6 @@ namespace Brightfish\SpxMediaAnalyzer;
 
 class Cache
 {
-
     private string $prefix;
     private int $expiration;
     private string $folder;
