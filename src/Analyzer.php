@@ -17,6 +17,8 @@ class Analyzer
         if($path){
             $this->ffmpeg->use_ffmpeg($path);
         }
+        $return=$this->ffmpeg->run_ffmpeg("","",["-version"]);
+        print_r($return);
     }
 
     public function meta(string $path): array

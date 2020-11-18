@@ -57,7 +57,9 @@ class Ffmpeg
         } else {
             $commandParts[] = $this->addQuotes($this->program, true);
         }
-        $commandParts[] = "-i " . $this->addQuotes($inputFile);
+        if($inputFile){
+            $commandParts[] = "-i " . $this->addQuotes($inputFile);
+        }
         $commandParts = array_merge($commandParts, $parameters);
         if ($outputFile) {
             $commandParts[] = "-y " . $this->addQuotes($outputFile);
