@@ -24,6 +24,7 @@ class Ffmpeg
             throw new Exception("Program [$path] not found");
         }
         $this->program = $path;
+
         return $this;
     }
 
@@ -33,6 +34,7 @@ class Ffmpeg
             throw new Exception("Log folder [$path] not found");
         }
         $this->logFolder = $path;
+
         return $this;
     }
 
@@ -42,6 +44,7 @@ class Ffmpeg
             throw new Exception("Cache folder [$path] not found");
         }
         $this->cache = new Cache($path, 36000, "ffmpeg");
+
         return $this;
     }
 
@@ -62,12 +65,13 @@ class Ffmpeg
         $command = implode(" ", $commandParts);
         $key = $command;
         if ($cache_results && $this->cache && $this->cache->exists($key)) {
-            $data=$this->cache->get($key);
-            $data["from_cache"]=date("c");
+            $data = $this->cache->get($key);
+            $data["from_cache"] = date("c");
+
             return $data;
         }
         $data = [];
-        $data["program"]=$this->program;
+        $data["program"] = $this->program;
         $data["command"] = $command;
         if (file_exists($inputFile)) {
             $data["input"] = [
@@ -103,7 +107,7 @@ class Ffmpeg
                     [filename] => (...)/spx_media_analyzer/tests/sources/big_buck_bunny5.wav
                     [filesize] => 882078
                 )
-        
+
             [started_at] => 2020-11-18T12:20:31+00:00
             [finished_at] => 2020-11-18T12:20:31+00:00
             [duration] => 0.141
@@ -130,7 +134,7 @@ class Ffmpeg
                     [17] =>     Stream #0:0: Audio: pcm_s16le ([1][0][0][0] / 0x0001), 44100 Hz, stereo, s16, 1411 kb/s
                     [18] => At least one output file must be specified
                 )
-        
+
         )
          */
         return $data;
@@ -145,6 +149,7 @@ class Ffmpeg
                 $path = realpath(dirname($path)) . DIRECTORY_SEPARATOR  . basename($path);
             }
         }
+
         return '"' . $path . '"';
     }
 }
