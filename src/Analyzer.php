@@ -11,10 +11,10 @@ class Analyzer
      */
     private Ffmpeg $ffmpeg;
 
-    public function __construct(string $path="")
+    public function __construct(string $path = "")
     {
-        $this->ffmpeg=New Ffmpeg();
-        if($path){
+        $this->ffmpeg = new Ffmpeg();
+        if ($path) {
             $this->ffmpeg->use_ffmpeg($path);
         }
     }
@@ -289,6 +289,7 @@ break;
     {
         $data = [];
         $data["_raw"] = trim($this->find($line, "|Data:\s+(.*)|"));
+
         return $data;
     }
 
@@ -308,9 +309,9 @@ break;
         return $data;
     }
 
-    public function split_on(string $text,string $pattern): array
+    public function split_on(string $text, string $pattern): array
     {
-        return preg_split($pattern,$text);
+        return preg_split($pattern, $text);
     }
 
     private function find(string $haystack, string $pattern): string
@@ -323,7 +324,7 @@ break;
         return "";
     }
 
-    private function find_label(string $haystack, string $label, array &$array=[]): string
+    private function find_label(string $haystack, string $label, array &$array = []): string
     {
         $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
         if ($nb) {
@@ -334,6 +335,7 @@ break;
 
             return $value;
         }
+
         return "";
     }
 }
