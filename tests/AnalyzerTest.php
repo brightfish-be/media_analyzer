@@ -15,7 +15,7 @@ class AnalyzerTest extends TestCase
     public function testMeta()
     {
         $exampleFolder = __DIR__;
-        $analyzer = new Analyzer("tests/bin/ffmpeg");
+        $analyzer = new Analyzer();
 
         $analysis = $analyzer->meta("$exampleFolder/sources/example.gif");
         //print_r($analysis);
