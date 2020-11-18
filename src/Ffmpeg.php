@@ -9,12 +9,13 @@ class Ffmpeg
 {
     private string $program;
     private string $logFolder;
-    private $cache;
+    private Cache $cache;
 
     public function __construct()
     {
         // this assumes that ffmpeg executable is in the path somewhere
         $this->program = "ffmpeg";
+        $this->logFolder = "";
     }
 
     public function use_ffmpeg(string $path): self
@@ -48,7 +49,7 @@ class Ffmpeg
         return $this;
     }
 
-    public function run_ffmpeg(string $inputFile, string $outputFile = "", array $parameters = [], bool $cache_results = false)
+    public function run_ffmpeg(string $inputFile, string $outputFile = "", array $parameters = [], bool $cache_results = false): array
     {
         $commandParts = [];
         if ($this->program === "ffmpeg") {
@@ -64,7 +65,7 @@ class Ffmpeg
         $commandParts[] = "2>&1";
         $command = implode(" ", $commandParts);
         $key = $command;
-        if ($cache_results && $this->cache && $this->cache->exists($key)) {
+        if ($cache_results && isset($this->cache) && $this->cache->exists($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
 
@@ -93,7 +94,7 @@ class Ffmpeg
             ];
         }
         $data["output"] = $output;
-        if ($cache_results && $this->cache) {
+        if ($cache_results && isset($this->cache)) {
             $this->cache->set($key, $data);
         }
 

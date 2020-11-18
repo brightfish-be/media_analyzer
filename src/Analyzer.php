@@ -6,13 +6,26 @@ use Exception;
 
 class Analyzer
 {
+    /**
+     * @var Ffmpeg
+     */
+    private Ffmpeg $ffmpeg;
+
+    public function __construct(string $path="")
+    {
+        $this->ffmpeg=New Ffmpeg();
+        if($path){
+            $this->ffmpeg->use_ffmpeg($path);
+        }
+    }
+
     public function meta(string $path): array
     {
         if (! file_exists($path)) {
             throw new Exception("`$path` does not exist");
         }
-        $ffmpeg = new Ffmpeg();
-        $data = $ffmpeg->run_ffmpeg($path);
+        $this->ffmpeg = new Ffmpeg();
+        $data = $this->ffmpeg->run_ffmpeg($path);
         $lines = $data["output"];
         $meta = [];
 
@@ -109,7 +122,7 @@ class Analyzer
         return $data;
     }
 
-    private function parse_metadata(string $text)
+    private function parse_metadata(string $text): array
     {
         $data = [];
         if (strstr($text, "Metadata:")) {
@@ -126,7 +139,7 @@ class Analyzer
     private function parse_stream_data(string $text): array
     {
         $data = [];
-        $data["_raw"] = substr($text, 0, strpos($text, "\n"));
+        $data["_raw"] = substr($text, 0, strpos($text, "\n")); // take first line
         $data["metadata"] = $this->parse_metadata($text);
         $type = "";
         if (strstr($data["_raw"], "Data:")) {
@@ -153,7 +166,7 @@ class Analyzer
         return $data;
     }
 
-    private function parse_audio_line($line): array
+    private function parse_audio_line(string $line): array
     {
         // pcm_s24le ([1][0][0][0] / 0x0001), 48000 hz, 5.1, s32 (24 bit), 6912 kb/s
         $data = [];
@@ -172,7 +185,7 @@ class Analyzer
         $data["kbps"] = $this->find($line, "|(\d+) kb/s|");
         $data["bps"] = 1000 * (double)$data["kbps"];
         if ($audio_channels and $data["kbps"]) {
-            $channel_kbps = (double)$data["kbps"] / $audio_channels;
+            $channel_kbps = (double)$data["kbps"] / (int)$audio_channels;
             $data["kbps_channel"] = round($channel_kbps, 1);
         }
         $data["bits"] = $this->find($line, "|\((\d+) bit\)|");
@@ -183,7 +196,7 @@ class Analyzer
         if (! $data["hertz"]) {
             $data["hertz"] = 48000;
         }
-        $uncomp = (int)$data["hertz"] * (int)$data["bits"] * $data["channels"];
+        $uncomp = (int)$data["hertz"] * (int)$data["bits"] * (int)$data["channels"];
         $data["compression"] = round($data["bps"] / $uncomp, 3);
         $data["compression_percent"] = round(100 * $data["bps"] / $uncomp) . "%";
         $data["quality"] = "high";
@@ -203,7 +216,7 @@ class Analyzer
         return $data;
     }
 
-    private function parse_video_line($line): array
+    private function parse_video_line(string $line): array
     {
         $data = [];
         $data["_raw"] = trim($this->find($line, "|Video:\s+(.*)|"));
@@ -259,7 +272,7 @@ class Analyzer
         return $data;
     }
 
-    private function parse_data_line($line): array{
+    private function parse_data_line(string $line): array{
         $data=[];
         $data["_raw"] = trim($this->find($line,"|Data:\s+(.*)|"));
         return $data;
@@ -280,7 +293,8 @@ class Analyzer
         return $data;
     }
 
-    public function split_on(string $text,string $pattern){
+    public function split_on(string $text,string $pattern): array
+    {
         return preg_split($pattern,$text);
     }
 
@@ -294,7 +308,7 @@ class Analyzer
         return "";
     }
 
-    private function find_label(string $haystack, string $label, &$array=false): string
+    private function find_label(string $haystack, string $label, array &$array=[]): string
     {
         $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
         if ($nb) {
@@ -305,7 +319,6 @@ class Analyzer
 
             return $value;
         }
-
         return "";
     }
 }
