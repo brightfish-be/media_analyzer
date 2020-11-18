@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
         php: [7.4]
         dependency-version: [prefer-lowest, prefer-stable]
 
@@ -35,6 +35,7 @@ jobs:
         run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
 
       - name: Install ffmpeg
+        runs-on: ubuntu-latest
         run: sudo apt-get install ffmpeg
 
       - name: Execute tests
