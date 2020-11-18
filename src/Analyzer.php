@@ -17,7 +17,7 @@ class Analyzer
         if ($path) {
             $this->ffmpeg->use_ffmpeg($path);
         }
-        $return=$this->ffmpeg->run_ffmpeg("","",["-version"]);
+        $return = $this->ffmpeg->run_ffmpeg("", "", ["-version"]);
         print_r($return);
     }
 
@@ -234,7 +234,9 @@ class Analyzer
             $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
-                    $data["aspect_type"] = "hd"; break;
+                    $data["aspect_type"] = "hd";
+
+break;
                     
                 case 1.90:
                     $data["aspect_type"] = "dcp";
