@@ -16,6 +16,7 @@ class AnalyzerTest extends TestCase
         $exampleFolder=__DIR__;
 
         $analysis=(new Analyzer)->meta("$exampleFolder/sources/example.gif");
+        print_r($analysis);
         $this->assertTrue($analysis["file"]["size"] === 8476,"gif file: file size");
         $this->assertTrue($analysis["video"]["size"] === "32x32","gif file: video size");
 

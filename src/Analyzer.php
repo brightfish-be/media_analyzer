@@ -82,7 +82,12 @@ class Analyzer
 
     // ----------------------------------------------------------------------------------------------------
 
-    public function parse_ffmpeg_version($text){
+    /**
+     * @return string[]
+     *
+     * @psalm-return array{_raw: string, version: string, year: string, gcc_version: string}
+     */
+    public function parse_ffmpeg_version(string $text): array{
         $data=[];
         $data["_raw"] = $this->find($text, "|(.*)|");
         $data["version"] = $this->find($text, "|version ([\d\.]+)|");
@@ -92,14 +97,19 @@ class Analyzer
         return $data;
     }
 
-    public function parse_duration($text){
+    /**
+     * @return (float|string)[]
+     *
+     * @psalm-return array{_raw: string, length?: string, seconds?: float}
+     */
+    public function parse_duration(string $text): array{
         $data=[];
         $data["_raw"] = trim($this->find($text, "|Duration: ([^\s]*)|"));
         if($data["_raw"]){
             $data["length"]=$this->find($data["_raw"], "|(\d\d:\d\d:\d\d\.\d\d)|");
             if($data["length"]){
                 list($hour, $min, $sec) = explode(":", $data["length"], 3);
-                $secs = ($hour * 3600) + ($min * 60) + (double)$sec;
+                $secs = (int)$hour * 3600 + (int)$min * 60 + (double)$sec;
                 $data["seconds"]= round($secs, 2);
             }
         }
@@ -107,7 +117,7 @@ class Analyzer
         return $data;
     }
 
-    public function parse_metadata($text){
+    public function parse_metadata(string $text){
         $data=[];
         if(strstr($text,"Metadata:")){
             $this->find_label($text,"encoder",$data);
@@ -119,7 +129,12 @@ class Analyzer
         return $data;
     }
 
-    private function parse_stream_data(string $text)
+    /**
+     * @return (false|mixed|string)[]
+     *
+     * @psalm-return array{_raw: false|string, metadata: mixed, type: string, details?: mixed}
+     */
+    private function parse_stream_data(string $text): array
     {
         $data=[];
         $data["_raw"]=substr($text,0,strpos($text,"\n"));
@@ -142,13 +157,16 @@ class Analyzer
         return $data;
     }
 
-    private function parse_audio_line($line){
+    /**
+     * @return (float|int|string)[]
+     *
+     * @psalm-return array{_raw: string, channels: 1|2|6|string, kbps: string, bps: float, kbps_channel?: float, bits: int|string, hertz: int|string, compression: float, compression_percent: string, quality: string, codec: string}
+     * @param false|string $line
+     */
+    private function parse_audio_line($line): array{
         // pcm_s24le ([1][0][0][0] / 0x0001), 48000 hz, 5.1, s32 (24 bit), 6912 kb/s
         $data=[];
         $data["_raw"] = trim($this->find($line,"|Audio:\s+(.*)|"));
-        if (! isset($data["channels"])) {
-            $data["channels"] = 0;
-        }
         $audio_channels = $this->find($line, "|(\d) channels|");
         if (! $audio_channels and strstr($line, "stereo")) {
             $audio_channels = 2;
@@ -159,16 +177,11 @@ class Analyzer
         if (! $audio_channels) {
             $audio_channels = 1;
         }
-        if (! isset($audiostreams[$audio_channels])) {
-            $audiostreams[$audio_channels] = 1;
-        } else {
-            $audiostreams[$audio_channels]++;
-        }
-        $data["channels"] += $audio_channels;
+        $data["channels"] = $audio_channels;
         $data["kbps"] = $this->find($line, "|(\d+) kb/s|");
-        $data["bps"] = 1000 * $data["kbps"];
+        $data["bps"] = 1000 * (double)$data["kbps"];
         if ($audio_channels and $data["kbps"]) {
-            $channel_kbps = $data["kbps"] / $audio_channels;
+            $channel_kbps = (double)$data["kbps"] / $audio_channels;
             $data["kbps_channel"] = round($channel_kbps, 1);
         }
         $data["bits"] = $this->find($line, "|\((\d+) bit\)|");
@@ -179,7 +192,7 @@ class Analyzer
         if (! $data["hertz"]) {
             $data["hertz"] = 48000;
         }
-        $uncomp = $data["hertz"] * $data["bits"] * $data["channels"];
+        $uncomp = (int)$data["hertz"] * (int)$data["bits"] * $data["channels"];
         $data["compression"] = round($data["bps"] / $uncomp, 3);
         $data["compression_percent"] = round(100 * $data["bps"] / $uncomp) . "%";
         $data["quality"] = "high";
@@ -192,7 +205,13 @@ class Analyzer
         return $data;
     }
 
-    private function parse_video_line($line){
+    /**
+     * @return (float|int|string)[]
+     *
+     * @psalm-return array{_raw: string, size: string, width?: int, height?: int, pixels?: int, dar?: string, aspect_ratio?: float, aspect_type?: string, chroma: string, fps: float, kbps: float, bps: float, codec: string, compression?: float, compression_percent?: string}
+     * @param false|string $line
+     */
+    private function parse_video_line($line): array{
         $data=[];
         $data["_raw"] = trim($this->find($line,"|Video:\s+(.*)|"));
         $line = strtolower($line);
@@ -201,9 +220,9 @@ class Analyzer
             list($w, $h) = explode("x", $data["size"]);
             $data["width"] = (int)$w;
             $data["height"] = (int)$h;
-            $data["pixels"] = $w * $h;
+            $data["pixels"] = (int)$w * (int)$h;
             $data["dar"] = $this->find($line,"|dar ([\d\.:]+)|");
-            $data["aspect_ratio"] = round($w / $h, 2);
+            $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
                     $data["aspect_type"] = "hd"; break;
@@ -246,7 +265,13 @@ class Analyzer
         return $data;
     }
 
-    private function parse_data_line($line){
+    /**
+     * @return string[]
+     *
+     * @psalm-return array{_raw: string}
+     * @param false|string $line
+     */
+    private function parse_data_line($line): array{
         $data=[];
         $data["_raw"] = trim($this->find($line,"|Data:\s+(.*)|"));
         return $data;
@@ -254,7 +279,12 @@ class Analyzer
 
     // ----------------------------------------------------------------------------------------------------
 
-    public function get_file_meta($path){
+    /**
+     * @return (false|float|int|string)[]
+     *
+     * @psalm-return array{name: string, extension: string, folder: string, size: false|int, mtime: false|int, modification: string, days: float}
+     */
+    public function get_file_meta(string $path): array{
         $data=[];
         $data["name"] = basename($path);
         $data["extension"] = strtolower(pathinfo($path, PATHINFO_EXTENSION));
@@ -266,7 +296,12 @@ class Analyzer
         return $data;
     }
 
-    public function split_on($text,$pattern){
+    /**
+     * @return false|string[]
+     *
+     * @psalm-return false|non-empty-list<string>
+     */
+    public function split_on(string $text,string $pattern){
         $matches=preg_split($pattern,$text);
         return $matches;
     }
@@ -280,7 +315,10 @@ class Analyzer
         return "";
     }
 
-    private function find_label($haystack, $label, &$array=false): string
+    /**
+     * @param array|false $array
+     */
+    private function find_label(string $haystack, string $label, &$array=false): string
     {
         $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
         if ($nb) {

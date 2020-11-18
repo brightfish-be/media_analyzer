@@ -17,7 +17,7 @@ class Ffmpeg
         $this->program = "ffmpeg";
     }
 
-    public function use_ffmpeg(string $path)
+    public function use_ffmpeg(string $path): self
     {
         // to set the ffmpeg path explicitly
         if (! file_exists($path)) {
@@ -27,7 +27,7 @@ class Ffmpeg
         return $this;
     }
 
-    public function log_to_folder(string $path)
+    public function log_to_folder(string $path): self
     {
         if (! file_exists($path)) {
             throw new Exception("Log folder [$path] not found");
@@ -36,7 +36,7 @@ class Ffmpeg
         return $this;
     }
 
-    public function cache_to_folder(string $path)
+    public function cache_to_folder(string $path): self
     {
         if (! is_dir($path)) {
             throw new Exception("Cache folder [$path] not found");
@@ -136,7 +136,7 @@ class Ffmpeg
         return $data;
     }
 
-    public function addQuotes(string $path, bool $dont_expand = false)
+    public function addQuotes(string $path, bool $dont_expand = false): string
     {
         if (! $dont_expand) {
             if (file_exists($path)) {
