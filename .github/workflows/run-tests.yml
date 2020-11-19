@@ -35,8 +35,8 @@ jobs:
         run: composer update --${{ matrix.dependency-version }} --prefer-dist --no-interaction --no-suggest
 
       - name: Install ffmpeg
-        runs-on: ubuntu-latest
-        run: sudo apt-get install ffmpeg
+        uses: FedericoCarboni/setup-ffmpeg@v1-beta
+        id: setup-ffmpeg
 
       - name: Execute tests
         run: vendor/bin/phpunit

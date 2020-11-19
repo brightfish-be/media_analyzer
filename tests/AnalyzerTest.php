@@ -18,7 +18,6 @@ class AnalyzerTest extends TestCase
         $analyzer = new Analyzer();
 
         $analysis = $analyzer->meta("$exampleFolder/sources/example.gif");
-        //print_r($analysis);
         $this->assertTrue($analysis["file"]["size"] === 8476, "gif file: file size");
         $this->assertTrue($analysis["video"]["size"] === "32x32", "gif file: video size");
 
@@ -45,6 +44,7 @@ class AnalyzerTest extends TestCase
         $this->assertEquals(1411, $analysis["audio"]["kbps"], "wav file: audio kbps");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/video.mov");
+        print_r($analysis);
         $this->assertEquals("pcm_s16le", $analysis["audio"]["codec"], "mov file: codec");
         $this->assertEquals("yuv422p10le", $analysis["video"]["chroma"], "mov file: video chroma");
 
