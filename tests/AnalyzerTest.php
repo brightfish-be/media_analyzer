@@ -30,6 +30,8 @@ class AnalyzerTest extends TestCase
         $this->assertEquals(729, $analysis["video"]["pixels"], "png file: video pixels");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny.m4a");
+        $this->assertEquals("aac", $analysis["audio"]["codec"], "m4a file: codec");
+        $this->assertEquals(2, $analysis["audio"]["channels"], "m4a file: audio channels");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny.mp3");
         $this->assertEquals("mp3", $analysis["audio"]["codec"], "mp3 file: codec");
@@ -44,7 +46,6 @@ class AnalyzerTest extends TestCase
         $this->assertEquals(1411, $analysis["audio"]["kbps"], "wav file: audio kbps");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/video.mov");
-        print_r($analysis);
         $this->assertEquals("pcm_s16le", $analysis["audio"]["codec"], "mov file: codec");
         $this->assertEquals("yuv422p10le", $analysis["video"]["chroma"], "mov file: video chroma");
 

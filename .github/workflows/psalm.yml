@@ -10,6 +10,7 @@ jobs:
     psalm:
         name: psalm
         runs-on: ubuntu-latest
+        if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
         steps:
             - uses: actions/checkout@v1
 

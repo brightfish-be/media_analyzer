@@ -4,22 +4,60 @@ namespace Brightfish\SpxMediaAnalyzer;
 
 use Exception;
 
+/**
+ * Campaign value object.
+ *
+ * @property array $video
+ * @property array $audio
+ * @property array $file
+ * @property string $whoPays
+ *
+ * @method int getCampaignId()
+ * @method string getCampaignName()
+ * @method string getCampaignType()
+ * @method string getCustomerName()
+ * @method array getCustomerEmails()
+ * @method string getAgencyName()
+ * @method array getAgencyEmails()
+ * @method string getBrightFishSalesPerson()
+ * @method string getWhoPays()
+ *
+ * @copyright 2020 Brightfish
+ * @author Arnaud Coolsaet <a.coolsaet@brightfish.be>
+ */
+
 class Analyzer
 {
     /**
      * @var Ffmpeg
      */
     private Ffmpeg $ffmpeg;
+    private array $meta;
 
     public function __construct(string $path = "")
     {
         $this->ffmpeg = new Ffmpeg();
+        $this->meta=[];
+        
         if ($path) {
             $this->ffmpeg->use_ffmpeg($path);
         }
-        $return = $this->ffmpeg->run_ffmpeg("", "", ["-version"]);
-        print_r($return);
     }
+
+//    public function __get($propertyName){
+//        if(strstr($propertyName,"-")){
+//            list($topic,$key)=explode("-",$propertyName);
+//            if(isset($this->meta[$topic][$key])){
+//                return $this->meta[$topic][$key];
+//            }
+//        } else {
+//            $topic=$propertyName;
+//            if(isset($this->meta[$topic])){
+//                return $this->meta[$topic];
+//            }
+//        }
+//        return "";
+//    }
 
     public function meta(string $path): array
     {
@@ -29,16 +67,16 @@ class Analyzer
         $this->ffmpeg = new Ffmpeg();
         $data = $this->ffmpeg->run_ffmpeg($path);
         $lines = $data["output"];
-        $meta = [];
+        $this->meta = [];
 
-        $meta["file"] = $this->get_file_meta($path);
+        $this->meta["file"] = $this->get_file_meta($path);
 
         $output = implode("\n", $lines);
         $inputs = $this->split_on($output, "|Input (#\d+)|");
         if (count($inputs) < 2) {
-            $meta["error"] = "no input found in file";
+            $this->meta["error"] = "no input found in file";
 
-            return $meta;
+            return $this->meta;
         }
         $input_id = 0;
         foreach ($inputs as $input) {
@@ -52,8 +90,8 @@ class Analyzer
                     (...)
                     libpostproc    55.  3.100 / 55.  3.100
                  */
-                $meta["ffmpeg"] = $this->parse_ffmpeg_version($input);
-                $meta["ffmpeg"]["path"] = $data["program"];
+                $this->meta["ffmpeg"] = $this->parse_ffmpeg_version($input);
+                $this->meta["ffmpeg"]["path"] = $data["program"];
             } else {
                 // there will only be 1 input
                 $streams = $this->split_on($input, "|Stream (#\d:\d)|");
@@ -70,8 +108,8 @@ class Analyzer
                             encoder         : Lavf58.45.100
                             Duration: 00:00:01.00, start: 0.000000, bitrate: 99985 kb/s
                         */
-                        $meta["duration"] = $this->parse_duration($stream);
-                        $meta["metadata"] = $this->parse_metadata($stream);
+                        $this->meta["duration"] = $this->parse_duration($stream);
+                        $this->meta["metadata"] = $this->parse_metadata($stream);
                     } else {
                         // an actual stream
                         /*
@@ -83,8 +121,8 @@ class Analyzer
                         */
                         $stream_data = $this->parse_stream_data($stream);
                         $type = $stream_data["type"];
-                        $meta["streams"][$stream_id] = $stream_data;
-                        $meta[$type] = $stream_data["details"];
+                        $this->meta["streams"][$stream_id] = $stream_data;
+                        $this->meta[$type] = $stream_data["details"];
                     }
                     $stream_id++;
                 }
@@ -92,7 +130,7 @@ class Analyzer
             $input_id++;
         }
 
-        return $meta;
+        return $this->meta;
     }
 
 
