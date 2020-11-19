@@ -1,6 +1,6 @@
 {
     "name": "cinemapub/spx_media_analyzer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Analyze video,audio,image files (with ffmpeg)",
     "keywords": [
         "cinemapub",
