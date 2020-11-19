@@ -37,7 +37,7 @@ class Analyzer
     public function __construct(string $path = "")
     {
         $this->ffmpeg = new Ffmpeg();
-        $this->meta=[];
+        $this->meta = [];
         
         if ($path) {
             $this->ffmpeg->use_ffmpeg($path);
