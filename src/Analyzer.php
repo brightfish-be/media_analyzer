@@ -3,73 +3,69 @@
 namespace Brightfish\SpxMediaAnalyzer;
 
 use Exception;
-
-/**
- * Campaign value object.
- *
- * @property array $video
- * @property array $audio
- * @property array $file
- * @property string $whoPays
- *
- * @method int getCampaignId()
- * @method string getCampaignName()
- * @method string getCampaignType()
- * @method string getCustomerName()
- * @method array getCustomerEmails()
- * @method string getAgencyName()
- * @method array getAgencyEmails()
- * @method string getBrightFishSalesPerson()
- * @method string getWhoPays()
- *
- * @copyright 2020 Brightfish
- * @author Arnaud Coolsaet <a.coolsaet@brightfish.be>
- */
+use Psr\SimpleCache\CacheInterface;
+use Psr\Log\LoggerInterface;
+use Brightfish\{SpxMediaAnalyzer\Objects\VideoStream,
+    SpxMediaAnalyzer\Objects\AudioStream,
+    SpxMediaAnalyzer\Objects\DataStream,
+    SpxMediaAnalyzer\Objects\ImageStream,
+    SpxMediaAnalyzer\Objects\FileStream};
 
 class Analyzer
 {
-    /**
-     * @var Ffmpeg
-     */
+
     private Ffmpeg $ffmpeg;
     private array $meta;
+    private CacheInterface $cache;
+    private LoggerInterface $logger;
 
-    public function __construct(string $path = "")
+    public FileStream $file;
+    public AudioStream $audio;
+    public VideoStream $video;
+    public DataStream $data;
+    public ImageStream $image;
+    private array $streams;
+
+    public function __construct(string $binary = "", LoggerInterface $logger = null, CacheInterface $cache = null)
     {
         $this->ffmpeg = new Ffmpeg();
         $this->meta = [];
         
-        if ($path) {
-            $this->ffmpeg->use_ffmpeg($path);
+        if ($binary) {
+            $this->ffmpeg->useBinary($binary);
+        }
+        if($logger){
+            $this->useLogger($logger);
+        }
+        if($cache){
+            $this->useCache($cache);
         }
     }
 
-//    public function __get($propertyName){
-//        if(strstr($propertyName,"-")){
-//            list($topic,$key)=explode("-",$propertyName);
-//            if(isset($this->meta[$topic][$key])){
-//                return $this->meta[$topic][$key];
-//            }
-//        } else {
-//            $topic=$propertyName;
-//            if(isset($this->meta[$topic])){
-//                return $this->meta[$topic];
-//            }
-//        }
-//        return "";
-//    }
+    public function useLogger(LoggerInterface $logger){
+        $this->logger=$logger;
+        $this->ffmpeg->useLogger($logger);
+    }
+
+    public function useCache(CacheInterface $cache){
+        $this->cache=$cache;
+        $this->ffmpeg->useCache($cache);
+    }
 
     public function meta(string $path): array
     {
         if (! file_exists($path)) {
-            throw new Exception("`$path` does not exist");
+            throw new Exception("Media file [$path] does not exist");
         }
-        $this->ffmpeg = new Ffmpeg();
-        $data = $this->ffmpeg->run_ffmpeg($path);
+        $data = $this->ffmpeg->run($path);
+        if(!$data || !isset($data["output"])){
+            return [];
+        }
         $lines = $data["output"];
         $this->meta = [];
 
         $this->meta["file"] = $this->get_file_meta($path);
+        $this->file=New FileStream($this->meta["file"]);
 
         $output = implode("\n", $lines);
         $inputs = $this->split_on($output, "|Input (#\d+)|");
@@ -110,17 +106,37 @@ class Analyzer
                         */
                         $this->meta["duration"] = $this->parse_duration($stream);
                         $this->meta["metadata"] = $this->parse_metadata($stream);
+                        $this->file=new FileStream($this->meta);
+                        $this->streams[]=$this->file;
                     } else {
                         // an actual stream
                         /*
                         (eng): Video: prores (apcn / 0x6E637061), yuv422p10le(tv, bt709, progressive), 1920x1080, 98431 kb/s, SAR 1:1 DAR 16:9, 25 fps, 25 tbr, 12800 tbn, 12800 tbc (default)
                         Metadata:
                         handler_name    : Apple Video Media Handler
-                        encoder         : Apple ProRes¬¨‚Ä†422
+                        encoder         : Apple ProRes
                         timecode        : 00:00:00:00
                         */
                         $stream_data = $this->parse_stream_data($stream);
                         $type = $stream_data["type"];
+                        switch ($type){
+                            case "video":
+                                $this->video=New VideoStream($stream_data);
+                                $this->streams[]=$this->video;
+                                break;
+                            case "audio":
+                                $this->audio=New AudioStream($stream_data);
+                                $this->streams[]=$this->audio;
+                                break;
+                            case "image":
+                                $this->image =New ImageStream($stream_data);
+                                $this->streams[]=$this->image;
+                                break;
+                            case "data":
+                                $this->data=New DataStream($stream_data);
+                                $this->streams[]=$this->data;
+                                break;
+                        }
                         $this->meta["streams"][$stream_id] = $stream_data;
                         $this->meta[$type] = $stream_data["details"];
                     }
@@ -129,7 +145,6 @@ class Analyzer
             }
             $input_id++;
         }
-
         return $this->meta;
     }
 
@@ -191,10 +206,19 @@ class Analyzer
         }
         if (strstr($data["_raw"], "Video:")) {
             $type = "video";
+            foreach(explode(",","jpg,png,tif,bmp,dpx") as $image_extension){
+                //Video: png, pal8(pc), 27x27, 25 tbr, 25 tbn, 25 tbc
+                if(strstr($data["_raw"]," $image_extension,")){
+                    $type="image";
+                }
+            }
         }
         $data["type"] = $type;
         if ($type === "audio") {
             $data["details"] = $this->parse_audio_line($data["_raw"]);
+        }
+        if ($type === "image") {
+            $data["details"] = $this->parse_image_line($data["_raw"]);
         }
         if ($type === "video") {
             $data["details"] = $this->parse_video_line($data["_raw"]);
@@ -272,31 +296,24 @@ class Analyzer
             $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
-                    $data["aspect_type"] = "hd";
+                    $data["aspect_type"] = "hd"; break;
 
-break;
-                    
                 case 1.90:
-                    $data["aspect_type"] = "dcp";
+                    $data["aspect_type"] = "dcp";break;
 
-break;
                 case 1.85:
-                    $data["aspect_type"] = "flat";
+                    $data["aspect_type"] = "flat";break;
 
-break;
                 case 2.35:
                 case 2.39:
-                    $data["aspect_type"] = "scope";
-
-break;
+                    $data["aspect_type"] = "scope";break;
                 case 1.33:
-                    $data["aspect_type"] = "tv";
-
-break;
+                    $data["aspect_type"] = "tv";break;
                 case 1:
-                    $data["aspect_type"] = "square";
+                    $data["aspect_type"] = "square";break;
+                default:
+                    $data["aspect_type"] = "$w:$h";
 
-break;
             }
         }
         $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
@@ -309,6 +326,64 @@ break;
         $data["fps"] = (double)$this->find($line, "|([\d\.]+) tbr|");
         if (! $data["fps"]) {
             $data["fps"] = (double)$this->find($line, "|([\d\.]+) fps|");
+        }
+        $data["kbps"] = (double)$this->find($line, "|(\d+) kb/s|");
+        if (isset($data["kbps"])) {
+            $data["bps"] = $data["kbps"] * 1000;
+        }
+        $codec = substr($data["_raw"], 0, strpos($data["_raw"], ","));
+        $data["codec"] = trim(preg_replace("#(\(.*\))#", "", $codec));
+        if (isset($data["fps"]) && isset($data["pixels"])) {
+            $uncompressed = $data["pixels"] * 24 * $data["fps"];
+            $data["compression"] = round($data["bps"] / $uncompressed, 3);
+            $data["compression_percent"] = round(100 * $data["bps"] / $uncompressed, 1) . "%";
+        }
+        ksort($data);
+
+        return $data;
+    }
+
+    private function parse_image_line(string $line): array
+    {
+        $data = [];
+        $data["_raw"] = trim($this->find($line, "|Video:\s+(.*)|"));
+        $line = strtolower($line);
+        $data["size"] = $this->find($line, "|(\d\d+x\d\d+)|");
+        if ($data["size"]) {
+            list($w, $h) = explode("x", $data["size"]);
+            $data["width"] = (int)$w;
+            $data["height"] = (int)$h;
+            $data["pixels"] = (int)$w * (int)$h;
+            $data["dar"] = $this->find($line, "|dar ([\d\.:]+)|");
+            $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
+            switch ($data["aspect_ratio"]) {
+                case 1.78:
+                    $data["aspect_type"] = "hd"; break;
+
+                case 1.90:
+                    $data["aspect_type"] = "dcp";break;
+
+                case 1.85:
+                    $data["aspect_type"] = "flat";break;
+
+                case 2.35:
+                case 2.39:
+                    $data["aspect_type"] = "scope";break;
+                case 1.33:
+                    $data["aspect_type"] = "tv";break;
+                case 1:
+                    $data["aspect_type"] = "square";break;
+                default:
+                    $data["aspect_type"] = "$w:$h";
+
+            }
+        }
+        $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
+        if (! $data["chroma"]) {
+            $data["chroma"] = $this->find($line, "|(rgb[\w]+)|");
+        }
+        if (! $data["chroma"]) {
+            $data["chroma"] = $this->find($line, "|(xyz[\w]+)|");
         }
         $data["kbps"] = (double)$this->find($line, "|(\d+) kb/s|");
         if (isset($data["kbps"])) {

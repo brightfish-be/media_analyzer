@@ -28,23 +28,14 @@ class FfmpegTest extends TestCase
     public function testUse_ffmpeg()
     {
         $this->expectException(Exception::class);
-        $this->ffmpeg->use_ffmpeg("/does/not/exist");
-        $this->ffmpeg->use_ffmpeg("/usr/bin/ffmpeg");
-    }
-
-    public function testLog_to_folder()
-    {
-        $this->expectException(Exception::class);
-        $this->ffmpeg->log_to_folder("/does/not/exist");
-        $this->ffmpeg->log_to_folder(".");
+        $this->ffmpeg->useBinary("/does/not/exist");
+        $this->ffmpeg->useBinary("/usr/bin/ffmpeg");
     }
 
     public function testRun()
     {
         $exampleFolder = __DIR__;
-        $this->ffmpeg->cache_to_folder($this->tempFolder);
-        $this->ffmpeg->log_to_folder($this->tempFolder);
-        $output = $this->ffmpeg->run_ffmpeg("$exampleFolder/sources/example.mp4", "-", [], true);
+        $output = $this->ffmpeg->run("$exampleFolder/sources/example.mp4", "-", [], true);
         $this->assertGreaterThan(0, count($output), "lines");
     }
 

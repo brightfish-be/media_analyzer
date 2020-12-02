@@ -4,58 +4,56 @@
 namespace Brightfish\SpxMediaAnalyzer;
 
 use Exception;
+use Psr\SimpleCache\CacheInterface;
+use Psr\Log\LoggerInterface;
 
 class Ffmpeg
 {
-    private string $program;
-    private string $logFolder;
-    private Cache $cache;
+    private string $binary;
+    private CacheInterface $cache;
+    private LoggerInterface $logger;
+    private int $cache_expiration;
 
-    public function __construct()
+    public function __construct(string $binary="")
     {
         // this assumes that ffmpeg executable is in the path somewhere
-        $this->program = "ffmpeg";
-        $this->logFolder = "";
+        if($binary){
+            $this->useBinary($binary);
+        } else {
+            $this->binary = "ffmpeg";
+        }
     }
 
-    public function use_ffmpeg(string $path): self
+    public function useBinary(string $path): self
     {
         // to set the ffmpeg path explicitly
         if (! file_exists($path)) {
-            throw new Exception("Program [$path] not found");
+            throw new Exception("Binary [$path] not found");
         }
-        $this->program = $path;
-
+        $this->binary = $path;
         return $this;
     }
 
-    public function log_to_folder(string $path): self
+    public function useLogger(LoggerInterface $logger): self
     {
-        if (! file_exists($path)) {
-            throw new Exception("Log folder [$path] not found");
-        }
-        $this->logFolder = $path;
-
+        $this->logger=$logger;
         return $this;
     }
 
-    public function cache_to_folder(string $path): self
+    public function useCache(CacheInterface $cache, $expiration=3600):self
     {
-        if (! is_dir($path)) {
-            throw new Exception("Cache folder [$path] not found");
-        }
-        $this->cache = new Cache($path, 36000, "ffmpeg");
-
+        $this->cache=$cache;
+        $this->cache_expiration=$expiration;
         return $this;
     }
 
-    public function run_ffmpeg(string $inputFile, string $outputFile = "", array $parameters = [], bool $cache_results = false): array
+    public function run(string $inputFile, string $outputFile = "", array $parameters = [], bool $useCache = false): array
     {
         $commandParts = [];
-        if ($this->program === "ffmpeg") {
-            $commandParts[] = $this->program;
+        if ($this->binary === "ffmpeg") {
+            $commandParts[] = $this->binary;
         } else {
-            $commandParts[] = $this->addQuotes($this->program, true);
+            $commandParts[] = $this->addQuotes($this->binary, true);
         }
         if ($inputFile) {
             $commandParts[] = "-i " . $this->addQuotes($inputFile);
@@ -67,19 +65,18 @@ class Ffmpeg
         $commandParts[] = "2>&1";
         $command = implode(" ", $commandParts);
         $key = $command;
-        if ($cache_results && isset($this->cache) && $this->cache->exists($key)) {
+        if ($useCache && isset($this->cache) && $this->cache instanceof CacheInterface && $this->cache->has($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
-
             return $data;
         }
         $data = [];
-        $data["program"] = $this->program;
+        $data["program"] = $this->binary;
         $data["command"] = $command;
         if (file_exists($inputFile)) {
             $data["input"] = [
                 "filename" => $inputFile,
-                "filesize" => filesize($inputFile),
+                "filesize" => filesize($inputFile), // TODO: check if it works for > 4GB files
             ];
         }
         $data["started_at"] = date("c");
@@ -87,8 +84,12 @@ class Ffmpeg
         exec($command, $output, $return);
         $t1 = microtime(true);
         $data["finished_at"] = date("c");
-        $data["duration"] = round($t1 - $t0, 3);
+        $duration= round($t1 - $t0, 3);
+        $data["duration"] = $duration;
         $data["return"] = $return;
+        if(isset($this->logger) && $this->logger instanceof LoggerInterface){
+            $this->logger->info("Executed [$command] in $duration seconds");
+        }
         if (file_exists($outputFile)) {
             $data["output"] = [
                 "filename" => $outputFile,
@@ -96,8 +97,8 @@ class Ffmpeg
             ];
         }
         $data["output"] = $output;
-        if ($cache_results && isset($this->cache)) {
-            $this->cache->set($key, $data);
+        if ($useCache && isset($this->cache) && $this->cache instanceof CacheInterface) {
+            $this->cache->set($key, $data, $this->cache_expiration);
         }
 
         /*
@@ -143,7 +144,7 @@ class Ffmpeg
         return $data;
     }
 
-    public function addQuotes(string $path, bool $dont_expand = false): string
+    private function addQuotes(string $path, bool $dont_expand = false): string
     {
         if (! $dont_expand) {
             if (file_exists($path)) {
@@ -155,4 +156,6 @@ class Ffmpeg
 
         return '"' . $path . '"';
     }
+
+
 }

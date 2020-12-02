@@ -12,7 +12,7 @@ class AnalyzerTest extends TestCase
         parent::__construct($name, $data, $dataName);
     }
 
-    public function testMeta()
+    public function testMetaArray()
     {
         $exampleFolder = __DIR__;
         $analyzer = new Analyzer();
@@ -26,8 +26,8 @@ class AnalyzerTest extends TestCase
         $this->assertEquals(24, $analysis["video"]["fps"], "mp4 file: video fps");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/example.png");
-        $this->assertEquals(1, $analysis["video"]["aspect_ratio"], "png file: aspect ratio");
-        $this->assertEquals(729, $analysis["video"]["pixels"], "png file: video pixels");
+        $this->assertEquals(1, $analysis["image"]["aspect_ratio"], "png file: aspect ratio");
+        $this->assertEquals(729, $analysis["image"]["pixels"], "png file: video pixels");
 
         $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny.m4a");
         $this->assertEquals("aac", $analysis["audio"]["codec"], "m4a file: codec");
@@ -53,5 +53,20 @@ class AnalyzerTest extends TestCase
         $this->assertEquals("jpeg2000", $analysis["video"]["codec"], "mxf file: codec");
         $this->assertEquals("xyz12le", $analysis["video"]["chroma"], "mxf file: video chroma");
         $this->assertEquals(24, $analysis["video"]["fps"], "mxf file: fps");
+    }
+
+    public function testMetaObjects()
+    {
+        $exampleFolder = __DIR__;
+        $analyzer = new Analyzer();
+
+        $analyzer->meta("$exampleFolder/sources/big_buck_bunny5.mp4");
+        $this->assertEquals(24, $analyzer->video->details["fps"], "mp4 file: video fps");
+        $this->assertEquals(130000, $analyzer->audio->details["bps"], "mp4 file: audio bps");
+
+        $analyzer->meta("$exampleFolder/sources/example.png");
+        $this->assertEquals(27, $analyzer->image->details["width"], "png file: image width");
+        $this->assertEquals(27, $analyzer->image->details["height"], "png file: image height");
+
     }
 }
