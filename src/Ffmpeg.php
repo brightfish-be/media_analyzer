@@ -78,7 +78,7 @@ class Ffmpeg
         $commandParts[] = "2>&1";
         $command = implode(" ", $commandParts);
         $key = $command;
-        if (!$inputIsMoreRecent && $useCache && $this->cache->has($key)) {
+        if (! $inputIsMoreRecent && $useCache && $this->cache->has($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
 
