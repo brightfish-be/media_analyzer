@@ -81,6 +81,7 @@ class Ffmpeg
         if (!$inputIsMoreRecent && $useCache && $this->cache->has($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
+
             return $data;
         }
         $data = [];
