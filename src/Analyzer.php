@@ -2,18 +2,17 @@
 // Author: Peter Forret (cinemapub, p.forret@brightfish.be)
 namespace Brightfish\SpxMediaAnalyzer;
 
+use Brightfish\SpxMediaAnalyzer\Objects\AudioStream;
+use Brightfish\SpxMediaAnalyzer\Objects\DataStream;
+use Brightfish\SpxMediaAnalyzer\Objects\FileStream;
+use Brightfish\SpxMediaAnalyzer\Objects\ImageStream;
+use Brightfish\SpxMediaAnalyzer\Objects\VideoStream;
 use Exception;
-use Psr\SimpleCache\CacheInterface;
 use Psr\Log\LoggerInterface;
-use Brightfish\{SpxMediaAnalyzer\Objects\VideoStream,
-    SpxMediaAnalyzer\Objects\AudioStream,
-    SpxMediaAnalyzer\Objects\DataStream,
-    SpxMediaAnalyzer\Objects\ImageStream,
-    SpxMediaAnalyzer\Objects\FileStream};
+use Psr\SimpleCache\CacheInterface;
 
 class Analyzer
 {
-
     private Ffmpeg $ffmpeg;
     private array $meta;
     private CacheInterface $cache;
@@ -35,25 +34,27 @@ class Analyzer
         if ($binary) {
             $this->ffmpeg->useBinary($binary);
         }
-        if($logger){
+        if ($logger) {
             $this->useLogger($logger);
         }
-        if($cache){
+        if ($cache) {
             $this->useCache($cache);
         }
     }
 
     public function useLogger(LoggerInterface $logger): self
     {
-        $this->logger=$logger;
+        $this->logger = $logger;
         $this->ffmpeg->useLogger($logger);
+
         return $this;
     }
 
     public function useCache(CacheInterface $cache): self
     {
-        $this->cache=$cache;
+        $this->cache = $cache;
         $this->ffmpeg->useCache($cache);
+
         return $this;
     }
 
@@ -63,14 +64,14 @@ class Analyzer
             throw new Exception("Media file [$path] does not exist");
         }
         $data = $this->ffmpeg->run($path);
-        if(!$data || !isset($data["output"])){
+        if (! $data || ! isset($data["output"])) {
             return [];
         }
         $lines = $data["output"];
         $this->meta = [];
 
         $this->meta["file"] = $this->get_file_meta($path);
-        $this->file=New FileStream($this->meta["file"]);
+        $this->file = new FileStream($this->meta["file"]);
 
         $output = implode("\n", $lines);
         $inputs = $this->split_on($output, "|Input (#\d+)|");
@@ -111,8 +112,8 @@ class Analyzer
                         */
                         $this->meta["duration"] = $this->parse_duration($stream);
                         $this->meta["metadata"] = $this->parse_metadata($stream);
-                        $this->file=new FileStream($this->meta);
-                        $this->streams[]=$this->file;
+                        $this->file = new FileStream($this->meta);
+                        $this->streams[] = $this->file;
                     } else {
                         // an actual stream
                         /*
@@ -124,22 +125,26 @@ class Analyzer
                         */
                         $stream_data = $this->parse_stream_data($stream);
                         $type = $stream_data["type"];
-                        switch ($type){
+                        switch ($type) {
                             case "video":
-                                $this->video=New VideoStream($stream_data);
-                                $this->streams[]=$this->video;
+                                $this->video = new VideoStream($stream_data);
+                                $this->streams[] = $this->video;
+
                                 break;
                             case "audio":
-                                $this->audio=New AudioStream($stream_data);
-                                $this->streams[]=$this->audio;
+                                $this->audio = new AudioStream($stream_data);
+                                $this->streams[] = $this->audio;
+
                                 break;
                             case "image":
-                                $this->image =New ImageStream($stream_data);
-                                $this->streams[]=$this->image;
+                                $this->image = new ImageStream($stream_data);
+                                $this->streams[] = $this->image;
+
                                 break;
                             case "data":
-                                $this->data=New DataStream($stream_data);
-                                $this->streams[]=$this->data;
+                                $this->data = new DataStream($stream_data);
+                                $this->streams[] = $this->data;
+
                                 break;
                         }
                         $this->meta["streams"][$stream_id] = $stream_data;
@@ -150,6 +155,7 @@ class Analyzer
             }
             $input_id++;
         }
+
         return $this->meta;
     }
 
@@ -200,7 +206,7 @@ class Analyzer
     private function parse_stream_data(string $text): array
     {
         $data = [];
-        $lines=explode("\n",$text);
+        $lines = explode("\n", $text);
         $data["_raw"] = $lines[0];
         $data["metadata"] = $this->parse_metadata($text);
         $type = "";
@@ -212,10 +218,10 @@ class Analyzer
         }
         if (strstr($data["_raw"], "Video:")) {
             $type = "video";
-            foreach(explode(",","jpg,png,tif,bmp,dpx") as $image_extension){
+            foreach (explode(",", "jpg,png,tif,bmp,dpx") as $image_extension) {
                 //Video: png, pal8(pc), 27x27, 25 tbr, 25 tbn, 25 tbc
-                if(strstr($data["_raw"]," $image_extension,")){
-                    $type="image";
+                if (strstr($data["_raw"], " $image_extension,")) {
+                    $type = "image";
                 }
             }
         }
@@ -280,7 +286,7 @@ class Analyzer
         if ($data["compression"] < 0.1) {
             $data["quality"] = "low";
         }
-        $data["codec"]=$this->parse_codec($data["_raw"]);
+        $data["codec"] = $this->parse_codec($data["_raw"]);
         ksort($data);
 
         return $data;
@@ -301,18 +307,30 @@ class Analyzer
             $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
-                    $data["aspect_type"] = "hd"; break;
+                    $data["aspect_type"] = "hd";
+
+break;
                 case 1.90:
-                    $data["aspect_type"] = "dcp";break;
+                    $data["aspect_type"] = "dcp";
+
+break;
                 case 1.85:
-                    $data["aspect_type"] = "flat";break;
+                    $data["aspect_type"] = "flat";
+
+break;
                 case 2.35:
                 case 2.39:
-                    $data["aspect_type"] = "scope";break;
+                    $data["aspect_type"] = "scope";
+
+break;
                 case 1.33:
-                    $data["aspect_type"] = "tv";break;
+                    $data["aspect_type"] = "tv";
+
+break;
                 case 1:
-                    $data["aspect_type"] = "square";break;
+                    $data["aspect_type"] = "square";
+
+break;
                 default:
                     $data["aspect_type"] = "$w:$h";
             }
@@ -332,7 +350,7 @@ class Analyzer
         if (isset($data["kbps"])) {
             $data["bps"] = $data["kbps"] * 1000;
         }
-        $data["codec"]=$this->parse_codec($data["_raw"]);
+        $data["codec"] = $this->parse_codec($data["_raw"]);
         if (isset($data["fps"]) && isset($data["pixels"])) {
             $uncompressed = $data["pixels"] * 24 * $data["fps"];
             $data["compression"] = round($data["bps"] / $uncompressed, 3);
@@ -358,18 +376,30 @@ class Analyzer
             $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
             switch ($data["aspect_ratio"]) {
                 case 1.78:
-                    $data["aspect_type"] = "hd"; break;
+                    $data["aspect_type"] = "hd";
+
+break;
                 case 1.90:
-                    $data["aspect_type"] = "dcp";break;
+                    $data["aspect_type"] = "dcp";
+
+break;
                 case 1.85:
-                    $data["aspect_type"] = "flat";break;
+                    $data["aspect_type"] = "flat";
+
+break;
                 case 2.35:
                 case 2.39:
-                    $data["aspect_type"] = "scope";break;
+                    $data["aspect_type"] = "scope";
+
+break;
                 case 1.33:
-                    $data["aspect_type"] = "tv";break;
+                    $data["aspect_type"] = "tv";
+
+break;
                 case 1:
-                    $data["aspect_type"] = "square";break;
+                    $data["aspect_type"] = "square";
+
+break;
                 default:
                     $data["aspect_type"] = "$w:$h";
 
@@ -386,8 +416,9 @@ class Analyzer
         if (isset($data["kbps"])) {
             $data["bps"] = $data["kbps"] * 1000;
         }
-        $data["codec"]=$this->parse_codec($data["_raw"]);
+        $data["codec"] = $this->parse_codec($data["_raw"]);
         ksort($data);
+
         return $data;
     }
 
@@ -430,27 +461,32 @@ class Analyzer
         return "";
     }
 
-    private function find_label(string $haystack, string $label, array &$array = []): string
+    private function find_label(string $haystack, string $label, array &$array): string
     {
+        /*
+         * $haystack =
+        major_brand     : qt
+        minor_version   : 512
+        compatible_brands: qt
+         */
         $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
+        $value = "";
         if ($nb) {
             $value = $matches[1];
-            if (isset($array)) {
+            if ($array) {
                 $array[$label] = $value;
             }
-
-            return $value;
         }
 
-        return "";
+        return $value;
     }
 
     private function parse_codec(string $text): string
     {
         // $text: "h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m/smpte170m/bt709), 200x110 [SAR 1:1 DAR 20:11], 74 kb/s, 23.72 fps, 24 tbr, 90k tbn, 48 tbc (default)"
-        $codec="";
-        $comma=strpos($text, ",");
-        if($comma > 0){
+        $codec = "";
+        $comma = strpos($text, ",");
+        if ($comma > 0) {
             $codec = substr($text, 0, $comma);
             $codec = trim(preg_replace("#(\(.*\))#", "", $codec));
         }

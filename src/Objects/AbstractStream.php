@@ -3,9 +3,8 @@
 
 namespace Brightfish\SpxMediaAnalyzer\Objects;
 
-use JsonSerializable;
 use Illuminate\Support\Str;
-
+use JsonSerializable;
 
 abstract class AbstractStream implements JsonSerializable
 {
@@ -13,7 +12,7 @@ abstract class AbstractStream implements JsonSerializable
 
     public function __construct(array $metadata)
     {
-        $this->metadata=$metadata;
+        $this->metadata = $metadata;
     }
 
     /**
@@ -29,7 +28,7 @@ abstract class AbstractStream implements JsonSerializable
         }
 
         // then try the generic $this->metadata["this_key"]
-        if(isset($this->metadata[$key])){
+        if (isset($this->metadata[$key])) {
             return $this->metadata[$key];
         }
 
@@ -39,7 +38,6 @@ abstract class AbstractStream implements JsonSerializable
 
     public function jsonSerialize()
     {
-    return json_encode($this->metadata);
+        return json_encode($this->metadata);
     }
-
 }
