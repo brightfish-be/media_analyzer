@@ -4,8 +4,8 @@
 namespace Brightfish\SpxMediaAnalyzer;
 
 use Exception;
-use Psr\SimpleCache\CacheInterface;
 use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 class Ffmpeg
 {
@@ -14,14 +14,14 @@ class Ffmpeg
     private LoggerInterface $logger;
     private int $cache_expiration;
 
-    public function __construct(string $binary="")
+    public function __construct(string $binary = "")
     {
         // this assumes that ffmpeg executable is in the path somewhere
         $this->binary = "ffmpeg";
-        if($binary){
+        if ($binary) {
             $this->useBinary($binary);
         }
-        $this->cache_expiration=3600*24;
+        $this->cache_expiration = 3600 * 24;
     }
 
     public function useBinary(string $path): self
@@ -31,19 +31,22 @@ class Ffmpeg
             throw new Exception("Binary [$path] not found");
         }
         $this->binary = $path;
+
         return $this;
     }
 
     public function useLogger(LoggerInterface $logger): self
     {
-        $this->logger=$logger;
+        $this->logger = $logger;
+
         return $this;
     }
 
-    public function useCache(CacheInterface $cache, int $expiration=3600):self
+    public function useCache(CacheInterface $cache, int $expiration = 3600):self
     {
-        $this->cache=$cache;
-        $this->cache_expiration=$expiration;
+        $this->cache = $cache;
+        $this->cache_expiration = $expiration;
+
         return $this;
     }
 
@@ -68,6 +71,7 @@ class Ffmpeg
         if ($useCache && isset($this->cache) && $this->cache->has($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
+
             return $data;
         }
         $data = [];
@@ -84,10 +88,10 @@ class Ffmpeg
         exec($command, $output, $return);
         $t1 = microtime(true);
         $data["finished_at"] = date("c");
-        $duration= round($t1 - $t0, 3);
+        $duration = round($t1 - $t0, 3);
         $data["duration"] = $duration;
         $data["return"] = $return;
-        if(isset($this->logger)){
+        if (isset($this->logger)) {
             $this->logger->info("Executed [$command] in $duration seconds");
         }
         if (file_exists($outputFile)) {
@@ -156,6 +160,4 @@ class Ffmpeg
 
         return '"' . $path . '"';
     }
-
-
 }

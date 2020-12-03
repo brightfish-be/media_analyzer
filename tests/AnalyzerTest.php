@@ -67,6 +67,5 @@ class AnalyzerTest extends TestCase
         $analyzer->meta("$exampleFolder/sources/example.png");
         $this->assertEquals(27, $analyzer->image->details["width"], "png file: image width");
         $this->assertEquals(27, $analyzer->image->details["height"], "png file: image height");
-
     }
 }
