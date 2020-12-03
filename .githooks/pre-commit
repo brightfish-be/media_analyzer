@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep ".php\{0,1\}$")
+
+if [[ "${staged_files}" = "" ]]; then
+  exit 0
+fi
+
+can_commit=true
+
+
+# Fix code style
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+echo "Code styling..."
+
+for staged in ${staged_files}; do
+    ./vendor/bin/php-cs-fixer fix --quiet --allow-risky=yes "${staged}"
+
+    if [[ $? -eq 0 ]]; then
+        git add "${staged}"
+        echo "${staged}"
+    fi
+done
+
+
+# Run tests
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+echo "Running tests..."
+
+${DOCKER} exec spottix composer test
+
+if [[ "$?" != 0 ]]; then
+    can_commit=false
+fi
+
+
+# Can we commit?
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+if ! ${can_commit}; then
+    echo -e "\n"
+    echo "!! Commit aborted!" "\n"
+    exit 1
+else
+    echo "Committing..."
+fi
+
+exit $?
