@@ -125,7 +125,6 @@ class Ffmpeg
                 $path = realpath(dirname($path)) . DIRECTORY_SEPARATOR  . basename($path);
             }
         }
-
         return '"' . $path . '"';
     }
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep ".php\{0,1\}$")
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep ".php")
 
 if [[ "${staged_files}" = "" ]]; then
   exit 0
