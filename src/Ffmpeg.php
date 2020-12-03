@@ -62,10 +62,10 @@ class Ffmpeg
         } else {
             $commandParts[] = $this->addQuotes($this->binary, true);
         }
-        $inputIsMoreRecent=false;
-        if($inputFile && is_file($inputFile) && $outputFile && $outputFile <> "-"){
-            if(filemtime($inputFile) > filemtime($outputFile)){
-                $inputIsMoreRecent=true;
+        $inputIsMoreRecent = false;
+        if ($inputFile && is_file($inputFile) && $outputFile && $outputFile <> "-") {
+            if (filemtime($inputFile) > filemtime($outputFile)) {
+                $inputIsMoreRecent = true;
             }
         }
         if ($inputFile) {
