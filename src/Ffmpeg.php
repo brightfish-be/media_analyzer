@@ -17,11 +17,11 @@ class Ffmpeg
     public function __construct(string $binary="")
     {
         // this assumes that ffmpeg executable is in the path somewhere
+        $this->binary = "ffmpeg";
         if($binary){
             $this->useBinary($binary);
-        } else {
-            $this->binary = "ffmpeg";
         }
+        $this->cache_expiration=3600*24;
     }
 
     public function useBinary(string $path): self
@@ -40,7 +40,7 @@ class Ffmpeg
         return $this;
     }
 
-    public function useCache(CacheInterface $cache, $expiration=3600):self
+    public function useCache(CacheInterface $cache, int $expiration=3600):self
     {
         $this->cache=$cache;
         $this->cache_expiration=$expiration;
@@ -65,7 +65,7 @@ class Ffmpeg
         $commandParts[] = "2>&1";
         $command = implode(" ", $commandParts);
         $key = $command;
-        if ($useCache && isset($this->cache) && $this->cache instanceof CacheInterface && $this->cache->has($key)) {
+        if ($useCache && isset($this->cache) && $this->cache->has($key)) {
             $data = $this->cache->get($key);
             $data["from_cache"] = date("c");
             return $data;
@@ -87,7 +87,7 @@ class Ffmpeg
         $duration= round($t1 - $t0, 3);
         $data["duration"] = $duration;
         $data["return"] = $return;
-        if(isset($this->logger) && $this->logger instanceof LoggerInterface){
+        if(isset($this->logger)){
             $this->logger->info("Executed [$command] in $duration seconds");
         }
         if (file_exists($outputFile)) {
@@ -97,7 +97,7 @@ class Ffmpeg
             ];
         }
         $data["output"] = $output;
-        if ($useCache && isset($this->cache) && $this->cache instanceof CacheInterface) {
+        if ($useCache && isset($this->cache)) {
             $this->cache->set($key, $data, $this->cache_expiration);
         }
 

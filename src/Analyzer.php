@@ -30,6 +30,7 @@ class Analyzer
     {
         $this->ffmpeg = new Ffmpeg();
         $this->meta = [];
+        $this->streams = [];
         
         if ($binary) {
             $this->ffmpeg->useBinary($binary);
@@ -42,14 +43,18 @@ class Analyzer
         }
     }
 
-    public function useLogger(LoggerInterface $logger){
+    public function useLogger(LoggerInterface $logger): self
+    {
         $this->logger=$logger;
         $this->ffmpeg->useLogger($logger);
+        return $this;
     }
 
-    public function useCache(CacheInterface $cache){
+    public function useCache(CacheInterface $cache): self
+    {
         $this->cache=$cache;
         $this->ffmpeg->useCache($cache);
+        return $this;
     }
 
     public function meta(string $path): array
@@ -195,7 +200,8 @@ class Analyzer
     private function parse_stream_data(string $text): array
     {
         $data = [];
-        $data["_raw"] = substr($text, 0, strpos($text, "\n")); // take first line
+        $lines=explode("\n",$text);
+        $data["_raw"] = $lines[0];
         $data["metadata"] = $this->parse_metadata($text);
         $type = "";
         if (strstr($data["_raw"], "Data:")) {
@@ -261,9 +267,9 @@ class Analyzer
         if (! $data["hertz"]) {
             $data["hertz"] = 48000;
         }
-        $uncomp = (int)$data["hertz"] * (int)$data["bits"] * (int)$data["channels"];
-        $data["compression"] = round($data["bps"] / $uncomp, 3);
-        $data["compression_percent"] = round(100 * $data["bps"] / $uncomp) . "%";
+        $uncompressed = (int)$data["hertz"] * (int)$data["bits"] * (int)$data["channels"];
+        $data["compression"] = round($data["bps"] / $uncompressed, 3);
+        $data["compression_percent"] = round(100 * $data["bps"] / $uncompressed) . "%";
         $data["quality"] = "high";
         if ($data["hertz"] < 44000) {
             $data["quality"] = "low";
@@ -274,8 +280,7 @@ class Analyzer
         if ($data["compression"] < 0.1) {
             $data["quality"] = "low";
         }
-        $codec = substr($data["_raw"], 0, strpos($data["_raw"], ","));
-        $data["codec"] = trim(preg_replace("#(\(.*\))#", "", $codec));
+        $data["codec"]=$this->parse_codec($data["_raw"]);
         ksort($data);
 
         return $data;
@@ -297,13 +302,10 @@ class Analyzer
             switch ($data["aspect_ratio"]) {
                 case 1.78:
                     $data["aspect_type"] = "hd"; break;
-
                 case 1.90:
                     $data["aspect_type"] = "dcp";break;
-
                 case 1.85:
                     $data["aspect_type"] = "flat";break;
-
                 case 2.35:
                 case 2.39:
                     $data["aspect_type"] = "scope";break;
@@ -313,7 +315,6 @@ class Analyzer
                     $data["aspect_type"] = "square";break;
                 default:
                     $data["aspect_type"] = "$w:$h";
-
             }
         }
         $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
@@ -331,8 +332,7 @@ class Analyzer
         if (isset($data["kbps"])) {
             $data["bps"] = $data["kbps"] * 1000;
         }
-        $codec = substr($data["_raw"], 0, strpos($data["_raw"], ","));
-        $data["codec"] = trim(preg_replace("#(\(.*\))#", "", $codec));
+        $data["codec"]=$this->parse_codec($data["_raw"]);
         if (isset($data["fps"]) && isset($data["pixels"])) {
             $uncompressed = $data["pixels"] * 24 * $data["fps"];
             $data["compression"] = round($data["bps"] / $uncompressed, 3);
@@ -359,13 +359,10 @@ class Analyzer
             switch ($data["aspect_ratio"]) {
                 case 1.78:
                     $data["aspect_type"] = "hd"; break;
-
                 case 1.90:
                     $data["aspect_type"] = "dcp";break;
-
                 case 1.85:
                     $data["aspect_type"] = "flat";break;
-
                 case 2.35:
                 case 2.39:
                     $data["aspect_type"] = "scope";break;
@@ -389,19 +386,12 @@ class Analyzer
         if (isset($data["kbps"])) {
             $data["bps"] = $data["kbps"] * 1000;
         }
-        $codec = substr($data["_raw"], 0, strpos($data["_raw"], ","));
-        $data["codec"] = trim(preg_replace("#(\(.*\))#", "", $codec));
-        if (isset($data["fps"]) && isset($data["pixels"])) {
-            $uncompressed = $data["pixels"] * 24 * $data["fps"];
-            $data["compression"] = round($data["bps"] / $uncompressed, 3);
-            $data["compression_percent"] = round(100 * $data["bps"] / $uncompressed, 1) . "%";
-        }
+        $data["codec"]=$this->parse_codec($data["_raw"]);
         ksort($data);
-
         return $data;
     }
 
-    private function parse_data_line($line): array
+    private function parse_data_line(string $line): array
     {
         $data = [];
         $data["_raw"] = trim($this->find($line, "|Data:\s+(.*)|"));
@@ -453,5 +443,18 @@ class Analyzer
         }
 
         return "";
+    }
+
+    private function parse_codec(string $text): string
+    {
+        // $text: "h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m/smpte170m/bt709), 200x110 [SAR 1:1 DAR 20:11], 74 kb/s, 23.72 fps, 24 tbr, 90k tbn, 48 tbc (default)"
+        $codec="";
+        $comma=strpos($text, ",");
+        if($comma > 0){
+            $codec = substr($text, 0, $comma);
+            $codec = trim(preg_replace("#(\(.*\))#", "", $codec));
+        }
+        // $codec = "h264"
+        return $codec;
     }
 }

@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 abstract class AbstractStream implements JsonSerializable
 {
+    protected array $metadata;
+
     public function __construct(array $metadata)
     {
         $this->metadata=$metadata;
