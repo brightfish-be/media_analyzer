@@ -22,8 +22,8 @@ class Analyzer
     public VideoStream $video;
     public DataStream $data;
     public ImageStream $image;
-    private bool $useLogger=false;
-    private bool $useCache=false;
+    private bool $useLogger = false;
+    private bool $useCache = false;
 
     public function __construct(string $binary = "", LoggerInterface $logger = null, CacheInterface $cache = null)
     {
@@ -31,11 +31,11 @@ class Analyzer
 
         if ($logger) {
             $this->logger = $logger;
-            $this->useLogger=true;
+            $this->useLogger = true;
         }
         if ($cache) {
             $this->cache = $cache;
-            $this->useCache=true;
+            $this->useCache = true;
         }
     }
 
@@ -49,6 +49,7 @@ class Analyzer
             $meta = $this->cache->get($key);
             if ($meta) {
                 $meta["from_cache"] = date("c");
+
                 return $meta;
             }
         }
