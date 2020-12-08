@@ -25,8 +25,16 @@ composer require cinemapub/spx_media_analyzer
 ## Usage
 
 ``` php
-$obj = new Cinemapub\SpxMediaAnalyzer();
-echo $obj->echoPhrase('Hello, cinemapub!');
+use Brightfish\SpxMediaAnalyzer\Analyzer;
+
+$obj = new Analyzer();
+// or
+$obj = new Analyzer("/usr/bin/ffprobe", $logger, $cache);
+
+$obj->meta("video.mp4");
+echo $obj->video->fps; 
+echo $obj->audio->sample_rate;
+echo $obj->container->duration;
 ```
 
 ## Testing
@@ -38,14 +46,6 @@ composer test
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security
-
-If you discover any security related issues, please email author_email instead of using the issue tracker.
 
 ## Credits
 
