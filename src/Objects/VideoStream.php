@@ -157,7 +157,7 @@ class VideoStream extends AbstractStream
             list($top, $bottom) = explode("/", $fps, 2);
             $fps = (double)$top / (double)$bottom;
         } else {
-            $fps=(double)$fps;
+            $fps = (double)$fps;
         }
         $this->metadata["fps"] = round($fps, 3);
         if (! isset($this->metadata["nb_frames"])) {
