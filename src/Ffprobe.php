@@ -9,7 +9,7 @@ class Ffprobe
 {
     private string $binary;
     private array $version;
-    private array $image_formats=["bmp","dpx","gif","jpeg","jpg","mjpeg","png","tif","tiff"];
+    private array $image_formats = ["bmp","dpx","gif","jpeg","jpg","mjpeg","png","tif","tiff"];
 
     public function __construct(string $binary = "")
     {
@@ -83,20 +83,21 @@ class Ffprobe
         $data["command"]["return"] = $return;
         $data["result"] = json_decode(implode("\n", $output), true);
         ksort($data["result"]);
-        foreach($data["result"]["streams"] as $i => $stream){
-            $data["result"]["streams"][$i]["type"]=$stream["codec_type"];
-            if(
-                $data["result"]["format"]["nb_streams"] ==  1
+        foreach ($data["result"]["streams"] as $i => $stream) {
+            $data["result"]["streams"][$i]["type"] = $stream["codec_type"];
+            if (
+                $data["result"]["format"]["nb_streams"] == 1
                 && $stream["codec_type"] == "video"
                 && $stream["avg_frame_rate"] == "0/0"
-                && in_array($stream["codec_name"],$this->image_formats)){
-                $data["result"]["streams"][$i]["type"]="image";
+                && in_array($stream["codec_name"], $this->image_formats)) {
+                $data["result"]["streams"][$i]["type"] = "image";
             }
             ksort($data["result"]["streams"][$i]);
         }
         if (isset($data["result"]["format"]) && isset($data["result"]["streams"][0])) {
             ksort($data["result"]["format"]);
         }
+
         return $data;
     }
 

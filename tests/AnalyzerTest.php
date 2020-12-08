@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sabre\Cache\Memory;
 
-
 class AnalyzerTest extends TestCase
 {
     private string $exampleFolder;
@@ -24,13 +23,13 @@ class AnalyzerTest extends TestCase
     {
         parent::__construct($name, $data, $dataName);
         $this->exampleFolder = __DIR__;
-        $this->cache=New Memory();
-        $this->logger=New NullLogger();
+        $this->cache = new Memory();
+        $this->logger = new NullLogger();
     }
 
     public function testMp4()
     {
-        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer = new Analyzer("", $this->logger, $this->cache);
 
         $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.mp4");
 
@@ -46,7 +45,7 @@ class AnalyzerTest extends TestCase
 
     public function testMp3()
     {
-        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer = new Analyzer("", $this->logger, $this->cache);
 
         $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny.mp3");
 
@@ -59,7 +58,7 @@ class AnalyzerTest extends TestCase
 
     public function testDcpVideo()
     {
-        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer = new Analyzer("", $this->logger, $this->cache);
         $analyzer->meta("$this->exampleFolder/sources/dcp_video.mxf");
 
         $this->assertEquals(24, $analyzer->video->fps, "mxf file: fps");
@@ -71,7 +70,7 @@ class AnalyzerTest extends TestCase
 
     public function testDcpWav()
     {
-        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer = new Analyzer("", $this->logger, $this->cache);
         $analyzer->meta("$this->exampleFolder/sources/dcp_audio.wav");
 
         $this->assertEquals("pcm_s24le", $analyzer->audio->codec_name, "wav file: audio codec");
@@ -83,7 +82,7 @@ class AnalyzerTest extends TestCase
 
     public function testWav()
     {
-        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer = new Analyzer("", $this->logger, $this->cache);
         $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.wav");
 
         $this->assertEquals("pcm_s16le", $analyzer->audio->codec_name, "wav file: audio codec");
@@ -92,5 +91,4 @@ class AnalyzerTest extends TestCase
         $this->assertEquals(1, $analyzer->container->nb_streams, "wav file: nb streams");
         $this->assertEquals(5, $analyzer->container->duration, "wav file: container duration");
     }
-
 }

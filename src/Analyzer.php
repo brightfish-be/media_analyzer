@@ -3,8 +3,8 @@
 namespace Brightfish\SpxMediaAnalyzer;
 
 use Brightfish\SpxMediaAnalyzer\Objects\AudioStream;
-use Brightfish\SpxMediaAnalyzer\Objects\DataStream;
 use Brightfish\SpxMediaAnalyzer\Objects\ContainerStream;
+use Brightfish\SpxMediaAnalyzer\Objects\DataStream;
 use Brightfish\SpxMediaAnalyzer\Objects\ImageStream;
 use Brightfish\SpxMediaAnalyzer\Objects\VideoStream;
 use Exception;
@@ -35,16 +35,17 @@ class Analyzer
         }
     }
 
-    public function meta(string $path,$cacheTime=3600): array
+    public function meta(string $path, $cacheTime = 3600): array
     {
         if (! file_exists($path)) {
             throw new Exception("Media file [$path] does not exist");
         }
-        $key="probe-" . $path;
-        if($this->cache && $this->cache->has($key)){
+        $key = "probe-" . $path;
+        if ($this->cache && $this->cache->has($key)) {
             $meta = $this->cache->get($key);
-            if($meta){
-                $meta["from_cache"]=date("c");
+            if ($meta) {
+                $meta["from_cache"] = date("c");
+
                 return $meta;
             }
         }
@@ -53,33 +54,38 @@ class Analyzer
             return [];
         }
         $meta = [];
-        $this->container=New ContainerStream($data["result"]["format"]);
-        $meta["streams"]=[];
-        foreach($data["result"]["streams"] as $stream){
-            switch($stream["type"]){
+        $this->container = new ContainerStream($data["result"]["format"]);
+        $meta["streams"] = [];
+        foreach ($data["result"]["streams"] as $stream) {
+            switch ($stream["type"]) {
                 case "audio":
-                    $this->audio=$meta["streams"][]=New AudioStream($stream);
+                    $this->audio = $meta["streams"][] = new AudioStream($stream);
+
                     break;
 
                 case "video":
-                    $this->video=$meta["streams"][]=New VideoStream($stream);
+                    $this->video = $meta["streams"][] = new VideoStream($stream);
+
                     break;
 
                 case "image":
-                    $this->image=$meta["streams"][]=New ImageStream($stream);
+                    $this->image = $meta["streams"][] = new ImageStream($stream);
+
                     break;
 
                 case "data":
-                    $this->data=$meta["streams"][]=New DataStream($stream);
+                    $this->data = $meta["streams"][] = new DataStream($stream);
+
                     break;
 
             }
         }
 
-        if($this->cache){
-            $this->cache->set($key,$meta,$cacheTime);
+        if ($this->cache) {
+            $this->cache->set($key, $meta, $cacheTime);
             $this->logger->info("Cached saved for $key");
         }
+
         return $meta;
     }
 
@@ -245,5 +251,4 @@ class Analyzer
         )
 )
 */
-
 }
