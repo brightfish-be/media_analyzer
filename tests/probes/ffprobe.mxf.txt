@@ -1,0 +1,76 @@
+{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "jpeg2000",
+            "codec_long_name": "JPEG 2000",
+            "profile": "JPEG 2000 digital cinema 2K",
+            "codec_type": "video",
+            "codec_time_base": "0/1",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "width": 2048,
+            "height": 1080,
+            "coded_width": 2048,
+            "coded_height": 1080,
+            "closed_captions": 0,
+            "has_b_frames": 0,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "256:135",
+            "pix_fmt": "xyz12le",
+            "level": -99,
+            "field_order": "progressive",
+            "refs": 1,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/24",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "duration_ts": 48,
+            "duration": "2.000000",
+            "bits_per_raw_sample": "12",
+            "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "file_package_umid": "0x060A2B340101010501010D001330AFE0529471341330AFE00052947134133001",
+                "file_package_name": "File Package: SMPTE 429-4 frame wrapping of JPEG 2000 codestreams"
+            }
+        }
+    ],
+    "format": {
+        "filename": "/mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/dcp_video.mxf",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "format_name": "mxf",
+        "format_long_name": "MXF (Material eXchange Format)",
+        "start_time": "0.000000",
+        "duration": "2.000000",
+        "size": "17726009",
+        "bit_rate": "70904036",
+        "probe_score": 100,
+        "tags": {
+            "operational_pattern_ul": "060e2b34.04010101.0d010201.01010900",
+            "uid": "adab4424-2f25-4dc7-92ff-29bd000c0000",
+            "generation_uid": "adab4424-2f25-4dc7-92ff-29bd000c0001",
+            "company_name": "FFmpeg",
+            "product_name": "OP1a Muxer",
+            "product_version": "58.45.100",
+            "product_uid": "adab4424-2f25-4dc7-92ff-29bd000c0002",
+            "material_package_umid": "0x060A2B340101010501010D001330AFE0529471341330AFE00052947134133000",
+            "material_package_name": "Material Package",
+            "timecode": "00:00:00:00"
+        }
+    }
+}

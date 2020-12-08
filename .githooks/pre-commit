@@ -29,7 +29,7 @@ done
 
 echo "Running tests..."
 
-${DOCKER} exec spottix composer test
+composer test
 
 if [[ "$?" != 0 ]]; then
     can_commit=false

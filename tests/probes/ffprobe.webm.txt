@@ -1,0 +1,100 @@
+{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "vp8",
+            "codec_long_name": "On2 VP8",
+            "profile": "0",
+            "codec_type": "video",
+            "codec_time_base": "1/24",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "width": 854,
+            "height": 480,
+            "coded_width": 854,
+            "coded_height": 480,
+            "closed_captions": 0,
+            "has_b_frames": 0,
+            "sample_aspect_ratio": "1:1",
+            "display_aspect_ratio": "427:240",
+            "pix_fmt": "yuv420p",
+            "level": -99,
+            "field_order": "progressive",
+            "refs": 1,
+            "r_frame_rate": "24/1",
+            "avg_frame_rate": "24/1",
+            "time_base": "1/1000",
+            "start_pts": 0,
+            "start_time": "0.000000",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "DURATION": "00:00:04.999000000"
+            }
+        },
+        {
+            "index": 1,
+            "codec_name": "opus",
+            "codec_long_name": "Opus (Opus Interactive Audio Codec)",
+            "codec_type": "audio",
+            "codec_time_base": "1/48000",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "sample_fmt": "fltp",
+            "sample_rate": "48000",
+            "channels": 2,
+            "channel_layout": "stereo",
+            "bits_per_sample": 0,
+            "r_frame_rate": "0/0",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/1000",
+            "start_pts": -1,
+            "start_time": "-0.001000",
+            "disposition": {
+                "default": 1,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            },
+            "tags": {
+                "ENCODER": "Lavc58.35.100 libopus",
+                "DURATION": "00:00:05.002000000"
+            }
+        }
+    ],
+    "format": {
+        "filename": "/mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/big_buck_bunny5.webm",
+        "nb_streams": 2,
+        "nb_programs": 0,
+        "format_name": "matroska,webm",
+        "format_long_name": "Matroska / WebM",
+        "start_time": "-0.001000",
+        "duration": "5.002000",
+        "size": "201176",
+        "bit_rate": "321752",
+        "probe_score": 100,
+        "tags": {
+            "ENCODER": "Lavf58.20.100"
+        }
+    }
+}

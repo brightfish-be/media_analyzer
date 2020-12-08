@@ -1,0 +1,49 @@
+{
+    "streams": [
+        {
+            "index": 0,
+            "codec_name": "dpx",
+            "codec_long_name": "DPX (Digital Picture Exchange) image",
+            "codec_type": "video",
+            "codec_time_base": "0/1",
+            "codec_tag_string": "[0][0][0][0]",
+            "codec_tag": "0x0000",
+            "width": 27,
+            "height": 27,
+            "coded_width": 27,
+            "coded_height": 27,
+            "closed_captions": 0,
+            "has_b_frames": 0,
+            "pix_fmt": "rgba",
+            "level": -99,
+            "refs": 1,
+            "r_frame_rate": "25/1",
+            "avg_frame_rate": "0/0",
+            "time_base": "1/25",
+            "bits_per_raw_sample": "8",
+            "disposition": {
+                "default": 0,
+                "dub": 0,
+                "original": 0,
+                "comment": 0,
+                "lyrics": 0,
+                "karaoke": 0,
+                "forced": 0,
+                "hearing_impaired": 0,
+                "visual_impaired": 0,
+                "clean_effects": 0,
+                "attached_pic": 0,
+                "timed_thumbnails": 0
+            }
+        }
+    ],
+    "format": {
+        "filename": "/mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/example.dpx",
+        "nb_streams": 1,
+        "nb_programs": 0,
+        "format_name": "dpx_pipe",
+        "format_long_name": "piped dpx sequence",
+        "size": "11108",
+        "probe_score": 51
+    }
+}

@@ -4,68 +4,93 @@ namespace Brightfish\SpxMediaAnalyzer\Tests;
 
 use Brightfish\SpxMediaAnalyzer\Analyzer;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
+use Sabre\Cache\Memory;
+
 
 class AnalyzerTest extends TestCase
 {
+    private string $exampleFolder;
+    /**
+     * @var Memory
+     */
+    private Memory $cache;
+    /**
+     * @var NullLogger
+     */
+    private NullLogger $logger;
+
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
+        $this->exampleFolder = __DIR__;
+        $this->cache=New Memory();
+        $this->logger=New NullLogger();
     }
 
-    public function testMetaArray()
+    public function testMp4()
     {
-        $exampleFolder = __DIR__;
-        $analyzer = new Analyzer();
+        $analyzer = new Analyzer("",$this->logger,$this->cache);
 
-        $analysis = $analyzer->meta("$exampleFolder/sources/example.gif");
-        $this->assertTrue($analysis["file"]["size"] === 8476, "gif file: file size");
-        $this->assertTrue($analysis["video"]["size"] === "32x32", "gif file: video size");
+        $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.mp4");
 
-        $analysis = $analyzer->meta("$exampleFolder/sources/example.mp4");
-        $this->assertEquals("h264", $analysis["video"]["codec"], "mp4 file: video codec");
-        $this->assertEquals(24, $analysis["video"]["fps"], "mp4 file: video fps");
+        $this->assertEquals(24, $analyzer->video->fps, "mp4 file: fps");
+        $this->assertEquals(5, $analyzer->video->duration, "mp4 file: duration");
 
-        $analysis = $analyzer->meta("$exampleFolder/sources/example.png");
-        $this->assertEquals(1, $analysis["image"]["aspect_ratio"], "png file: aspect ratio");
-        $this->assertEquals(729, $analysis["image"]["pixels"], "png file: video pixels");
+        $this->assertEquals("aac", $analyzer->audio->codec_name, "mp4 file: audio codec");
+        $this->assertEquals(48000, $analyzer->audio->sample_rate, "mp4 file: audio sample rate");
 
-        $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny.m4a");
-        $this->assertEquals("aac", $analysis["audio"]["codec"], "m4a file: codec");
-        $this->assertEquals(2, $analysis["audio"]["channels"], "m4a file: audio channels");
-
-        $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny.mp3");
-        $this->assertEquals("mp3", $analysis["audio"]["codec"], "mp3 file: codec");
-        $this->assertEquals(2, $analysis["audio"]["channels"], "mp3 file: audio channels");
-
-        $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny5.mp4");
-        $this->assertEquals("aac", $analysis["audio"]["codec"], "mp4 file: codec");
-        $this->assertEquals("854x480", $analysis["video"]["size"], "mp4 file: resolution");
-
-        $analysis = $analyzer->meta("$exampleFolder/sources/big_buck_bunny5.wav");
-        $this->assertEquals("pcm_s16le", $analysis["audio"]["codec"], "wav file: codec");
-        $this->assertEquals(1411, $analysis["audio"]["kbps"], "wav file: audio kbps");
-
-        $analysis = $analyzer->meta("$exampleFolder/sources/video.mov");
-        $this->assertEquals("pcm_s16le", $analysis["audio"]["codec"], "mov file: codec");
-        $this->assertEquals("yuv422p10le", $analysis["video"]["chroma"], "mov file: video chroma");
-
-        $analysis = $analyzer->meta("$exampleFolder/sources/dcp_video.mxf");
-        $this->assertEquals("jpeg2000", $analysis["video"]["codec"], "mxf file: codec");
-        $this->assertEquals("xyz12le", $analysis["video"]["chroma"], "mxf file: video chroma");
-        $this->assertEquals(24, $analysis["video"]["fps"], "mxf file: fps");
+        $this->assertEquals(2, $analyzer->container->nb_streams, "mp4 file: nb streams");
+        $this->assertEquals(5.022, $analyzer->container->duration, "mp4 file: container duration");
     }
 
-    public function testMetaObjects()
+    public function testMp3()
     {
-        $exampleFolder = __DIR__;
-        $analyzer = new Analyzer();
+        $analyzer = new Analyzer("",$this->logger,$this->cache);
 
-        $analyzer->meta("$exampleFolder/sources/big_buck_bunny5.mp4");
-        $this->assertEquals(24, $analyzer->video->details["fps"], "mp4 file: video fps");
-        $this->assertEquals(130000, $analyzer->audio->details["bps"], "mp4 file: audio bps");
+        $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny.mp3");
 
-        $analyzer->meta("$exampleFolder/sources/example.png");
-        $this->assertEquals(27, $analyzer->image->details["width"], "png file: image width");
-        $this->assertEquals(27, $analyzer->image->details["height"], "png file: image height");
+        $this->assertEquals("mp3", $analyzer->audio->codec_name, "mp3 file: audio codec");
+        $this->assertEquals(44100, $analyzer->audio->sample_rate, "mp3 file: audio sample rate");
+
+        $this->assertEquals(1, $analyzer->container->nb_streams, "mp3 file: nb streams");
+        $this->assertEquals(29.805714, $analyzer->container->duration, "mp3 file: container duration");
     }
+
+    public function testDcpVideo()
+    {
+        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer->meta("$this->exampleFolder/sources/dcp_video.mxf");
+
+        $this->assertEquals(24, $analyzer->video->fps, "mxf file: fps");
+        $this->assertEquals(2, $analyzer->video->duration, "mxf file: duration");
+
+        $this->assertEquals(1, $analyzer->container->nb_streams, "mxf file: nb streams");
+        $this->assertEquals(2, $analyzer->container->duration, "mxf file: container duration");
+    }
+
+    public function testDcpWav()
+    {
+        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer->meta("$this->exampleFolder/sources/dcp_audio.wav");
+
+        $this->assertEquals("pcm_s24le", $analyzer->audio->codec_name, "wav file: audio codec");
+        $this->assertEquals(48000, $analyzer->audio->sample_rate, "wav file: audio sample rate");
+
+        $this->assertEquals(1, $analyzer->container->nb_streams, "wav file: nb streams");
+        $this->assertEquals(2, $analyzer->container->duration, "wav file: container duration");
+    }
+
+    public function testWav()
+    {
+        $analyzer = new Analyzer("",$this->logger,$this->cache);
+        $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.wav");
+
+        $this->assertEquals("pcm_s16le", $analyzer->audio->codec_name, "wav file: audio codec");
+        $this->assertEquals(44100, $analyzer->audio->sample_rate, "wav file: audio sample rate");
+
+        $this->assertEquals(1, $analyzer->container->nb_streams, "wav file: nb streams");
+        $this->assertEquals(5, $analyzer->container->duration, "wav file: container duration");
+    }
+
 }

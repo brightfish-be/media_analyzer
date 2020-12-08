@@ -7,6 +7,10 @@ use Exception;
 
 class Ffprobe
 {
+    private string $binary;
+    private array $version;
+    private array $image_formats=["bmp","dpx","gif","jpeg","jpg","mjpeg","png","tif","tiff"];
+
     public function __construct(string $binary = "")
     {
         // this assumes that ffprobe executable is in the path somewhere
@@ -64,7 +68,7 @@ class Ffprobe
         $data["command"]["full"] = $command;
         $data["command"]["input"] = [
             "filename" => $inputFile,
-            "filesize" => filesize($inputFile), // TODO: check if it works for > 4GB files
+            "filesize" => filesize($inputFile), // TODO: what to do for > 4GB files
             "modified" => date("c", filemtime($inputFile)),
             "changed" => date("c", filectime($inputFile)),
         ];
@@ -79,14 +83,21 @@ class Ffprobe
         $data["command"]["return"] = $return;
         $data["result"] = json_decode(implode("\n", $output), true);
         ksort($data["result"]);
-        if (isset($data["result"]["format"])) {
+        foreach($data["result"]["streams"] as $i => $stream){
+            $data["result"]["streams"][$i]["type"]=$stream["codec_type"];
+            if(
+                $data["result"]["format"]["nb_streams"] ==  1
+                && $stream["codec_type"] == "video"
+                && $stream["avg_frame_rate"] == "0/0"
+                && in_array($stream["codec_name"],$this->image_formats)){
+                $data["result"]["streams"][$i]["type"]="image";
+            }
+            ksort($data["result"]["streams"][$i]);
+        }
+        if (isset($data["result"]["format"]) && isset($data["result"]["streams"][0])) {
             ksort($data["result"]["format"]);
         }
-
         return $data;
-        /*
-
-         */
     }
 
     // private methods
@@ -118,6 +129,16 @@ class Ffprobe
         $data["gcc_version"] = $this->find($text, "|built with gcc ([\d\.]+)|");
         ksort($data);
 
+        /*
+         * [_raw] => ffprobe version 4.3.1-0york0~16.04 Copyright (c) 2007-2020 the FFmpeg developers
+                    [gcc_version] => 5.4.0
+                    [version] => 4.3.1
+                    [year] => 2020
+                    [file] => ffprobe
+                    [path] => /usr/bin/ffprobe
+                    [command] => 'ffprobe' -version
+
+         */
         return $data;
     }
 }

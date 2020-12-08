@@ -13,27 +13,26 @@ class FfprobeTest extends TestCase
     /**
      * @var Ffmpeg
      */
-    private Ffprobe $ffmpeg;
+    private Ffprobe $probe;
 
     public function __construct(?string $name = null, array $data = [], $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
-        $this->ffmpeg = new Ffprobe();
+        $this->probe = new Ffprobe();
     }
 
-    public function testUse_ffmpeg()
+    public function testBinary()
     {
         $this->expectException(Exception::class);
-        $this->ffmpeg = new Ffprobe("/does/not/exist");
+        $this->probe = new Ffprobe("/does/not/exist");
 
-        $this->ffmpeg = new Ffprobe("/usr/bin/ffprobe");
+        $this->probe = new Ffprobe("/usr/bin/ffprobe");
     }
 
-    public function testRun()
+    public function testProbe()
     {
         $exampleFolder = __DIR__;
-        $output = $this->ffmpeg->probe("$exampleFolder/sources/example.mp4");
-        print_r($output);
+        $output = $this->probe->probe("$exampleFolder/sources/example.jpg");
         $this->assertGreaterThan(0, count($output["result"]["streams"]), "stream count");
     }
 }

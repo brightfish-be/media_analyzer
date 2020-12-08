@@ -4,7 +4,7 @@ namespace Brightfish\SpxMediaAnalyzer;
 
 use Brightfish\SpxMediaAnalyzer\Objects\AudioStream;
 use Brightfish\SpxMediaAnalyzer\Objects\DataStream;
-use Brightfish\SpxMediaAnalyzer\Objects\FileStream;
+use Brightfish\SpxMediaAnalyzer\Objects\ContainerStream;
 use Brightfish\SpxMediaAnalyzer\Objects\ImageStream;
 use Brightfish\SpxMediaAnalyzer\Objects\VideoStream;
 use Exception;
@@ -13,484 +13,237 @@ use Psr\SimpleCache\CacheInterface;
 
 class Analyzer
 {
-    private Ffmpeg $ffmpeg;
-    private array $meta;
+    private Ffprobe $probe;
     private CacheInterface $cache;
     private LoggerInterface $logger;
 
-    public FileStream $file;
+    public ContainerStream $container;
     public AudioStream $audio;
     public VideoStream $video;
     public DataStream $data;
     public ImageStream $image;
-    private array $streams;
 
     public function __construct(string $binary = "", LoggerInterface $logger = null, CacheInterface $cache = null)
     {
-        $this->ffmpeg = new Ffmpeg();
-        $this->meta = [];
-        $this->streams = [];
-        
-        if ($binary) {
-            $this->ffmpeg->useBinary($binary);
-        }
+        $this->probe = new Ffprobe($binary);
+
         if ($logger) {
-            $this->useLogger($logger);
+            $this->logger = $logger;
         }
         if ($cache) {
-            $this->useCache($cache);
+            $this->cache = $cache;
         }
     }
 
-    public function useLogger(LoggerInterface $logger): self
-    {
-        $this->logger = $logger;
-        $this->ffmpeg->useLogger($logger);
-
-        return $this;
-    }
-
-    public function useCache(CacheInterface $cache): self
-    {
-        $this->cache = $cache;
-        $this->ffmpeg->useCache($cache);
-
-        return $this;
-    }
-
-    public function meta(string $path): array
+    public function meta(string $path,$cacheTime=3600): array
     {
         if (! file_exists($path)) {
             throw new Exception("Media file [$path] does not exist");
         }
-        $data = $this->ffmpeg->run($path);
-        if (! $data || ! isset($data["output"])) {
+        $key="probe-" . $path;
+        if($this->cache && $this->cache->has($key)){
+            $meta = $this->cache->get($key);
+            if($meta){
+                $meta["from_cache"]=date("c");
+                return $meta;
+            }
+        }
+        $data = $this->probe->probe($path);
+        if (! $data || ! isset($data["result"])) {
             return [];
         }
-        $lines = $data["output"];
-        $this->meta = [];
+        $meta = [];
+        $this->container=New ContainerStream($data["result"]["format"]);
+        $meta["streams"]=[];
+        foreach($data["result"]["streams"] as $stream){
+            switch($stream["type"]){
+                case "audio":
+                    $this->audio=$meta["streams"][]=New AudioStream($stream);
+                    break;
 
-        $this->meta["file"] = $this->get_file_meta($path);
-        $this->file = new FileStream($this->meta["file"]);
+                case "video":
+                    $this->video=$meta["streams"][]=New VideoStream($stream);
+                    break;
 
-        $output = implode("\n", $lines);
-        $inputs = $this->split_on($output, "|Input (#\d+)|");
-        if (count($inputs) < 2) {
-            $this->meta["error"] = "no input found in file";
+                case "image":
+                    $this->image=$meta["streams"][]=New ImageStream($stream);
+                    break;
 
-            return $this->meta;
-        }
-        $input_id = 0;
-        foreach ($inputs as $input) {
-            if ($input_id === 0) {
-                // ffmpeg version and libraries info
-                /*
-                 * ffmpeg version 4.1.3-0york1~16.04 Copyright (c) 2000-2019 the FFmpeg developers
-                    built with gcc 5.4.0 (Ubuntu 5.4.0-6ubuntu1~16.04.11) 20160609
-                    configuration: --prefix=/usr (...)) --enable-shared
-                    libavutil      56. 22.100 / 56. 22.100
-                    (...)
-                    libpostproc    55.  3.100 / 55.  3.100
-                 */
-                $this->meta["ffmpeg"] = $this->parse_ffmpeg_version($input);
-                $this->meta["ffmpeg"]["path"] = $data["program"];
-            } else {
-                // there will only be 1 input
-                $streams = $this->split_on($input, "|Stream (#\d:\d)|");
-                $stream_id = 0;
-                foreach ($streams as $stream) {
-                    if ($stream_id === 0) {
-                        // valid for the whole input
-                        /*
-                            , mov,mp4,m4a,3gp,3g2,mj2, from '(...)/spx_media_analyzer/tests/sources/video.mov':
-                            Metadata:
-                            major_brand     : qt
-                            minor_version   : 512
-                            compatible_brands: qt
-                            encoder         : Lavf58.45.100
-                            Duration: 00:00:01.00, start: 0.000000, bitrate: 99985 kb/s
-                        */
-                        $this->meta["duration"] = $this->parse_duration($stream);
-                        $this->meta["metadata"] = $this->parse_metadata($stream);
-                        $this->file = new FileStream($this->meta);
-                        $this->streams[] = $this->file;
-                    } else {
-                        // an actual stream
-                        /*
-                        (eng): Video: prores (apcn / 0x6E637061), yuv422p10le(tv, bt709, progressive), 1920x1080, 98431 kb/s, SAR 1:1 DAR 16:9, 25 fps, 25 tbr, 12800 tbn, 12800 tbc (default)
-                        Metadata:
-                        handler_name    : Apple Video Media Handler
-                        encoder         : Apple ProRes
-                        timecode        : 00:00:00:00
-                        */
-                        $stream_data = $this->parse_stream_data($stream);
-                        $type = $stream_data["type"];
-                        switch ($type) {
-                            case "video":
-                                $this->video = new VideoStream($stream_data);
-                                $this->streams[] = $this->video;
-
-                                break;
-                            case "audio":
-                                $this->audio = new AudioStream($stream_data);
-                                $this->streams[] = $this->audio;
-
-                                break;
-                            case "image":
-                                $this->image = new ImageStream($stream_data);
-                                $this->streams[] = $this->image;
-
-                                break;
-                            case "data":
-                                $this->data = new DataStream($stream_data);
-                                $this->streams[] = $this->data;
-
-                                break;
-                        }
-                        $this->meta["streams"][$stream_id] = $stream_data;
-                        $this->meta[$type] = $stream_data["details"];
-                    }
-                    $stream_id++;
-                }
-            }
-            $input_id++;
-        }
-
-        return $this->meta;
-    }
-
-
-    private function parse_ffmpeg_version(string $text): array
-    {
-        $data = [];
-        $data["_raw"] = $this->find($text, "|(.*)|");
-        $data["version"] = $this->find($text, "|version ([\d\.]+)|");
-        $data["year"] = $this->find($text, "|2000-(\d\d\d\d)|");
-        $data["gcc_version"] = $this->find($text, "|built with gcc ([\d\.]+)|");
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_duration(string $text): array
-    {
-        $data = [];
-        $data["_raw"] = trim($this->find($text, "|Duration: ([^\s]*)|"));
-        if ($data["_raw"]) {
-            $data["length"] = $this->find($data["_raw"], "|(\d\d:\d\d:\d\d\.\d\d)|");
-            if ($data["length"]) {
-                list($hour, $min, $sec) = explode(":", $data["length"], 3);
-                $secs = (int) $hour * 3600 + (int) $min * 60 + (double)$sec;
-                $data["seconds"] = round($secs, 2);
-            }
-        }
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_metadata(string $text): array
-    {
-        $data = [];
-        if (strstr($text, "Metadata:")) {
-            $this->find_label($text, "encoder", $data);
-            $this->find_label($text, "handler_name", $data);
-            $this->find_label($text, "compatible_brands", $data);
-            $this->find_label($text, "timecode", $data);
-        }
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_stream_data(string $text): array
-    {
-        $data = [];
-        $lines = explode("\n", $text);
-        $data["_raw"] = $lines[0];
-        $data["metadata"] = $this->parse_metadata($text);
-        $type = "";
-        if (strstr($data["_raw"], "Data:")) {
-            $type = "data";
-        }
-        if (strstr($data["_raw"], "Audio:")) {
-            $type = "audio";
-        }
-        if (strstr($data["_raw"], "Video:")) {
-            $type = "video";
-            foreach (explode(",", "jpg,png,tif,bmp,dpx") as $image_extension) {
-                //Video: png, pal8(pc), 27x27, 25 tbr, 25 tbn, 25 tbc
-                if (strstr($data["_raw"], " $image_extension,")) {
-                    $type = "image";
-                }
-            }
-        }
-        $data["type"] = $type;
-        if ($type === "audio") {
-            $data["details"] = $this->parse_audio_line($data["_raw"]);
-        }
-        if ($type === "image") {
-            $data["details"] = $this->parse_image_line($data["_raw"]);
-        }
-        if ($type === "video") {
-            $data["details"] = $this->parse_video_line($data["_raw"]);
-        }
-        if ($type === "data") {
-            $data["details"] = $this->parse_data_line($data["_raw"]);
-        }
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_audio_line(string $line): array
-    {
-        // pcm_s24le ([1][0][0][0] / 0x0001), 48000 hz, 5.1, s32 (24 bit), 6912 kb/s
-        $data = [];
-        $data["_raw"] = trim($this->find($line, "|Audio:\s+(.*)|"));
-        $audio_channels = $this->find($line, "|(\d) channels|");
-        if (! $audio_channels and strstr($line, "stereo")) {
-            $audio_channels = 2;
-        }
-        if (! $audio_channels and strstr($line, "5.1")) {
-            $audio_channels = 6;
-        }
-        if (! $audio_channels) {
-            $audio_channels = 1;
-        }
-        $data["channels"] = $audio_channels;
-        $data["kbps"] = $this->find($line, "|(\d+) kb/s|");
-        $data["bps"] = 1000 * (double)$data["kbps"];
-        if ($audio_channels and $data["kbps"]) {
-            $channel_kbps = (double)$data["kbps"] / (int)$audio_channels;
-            $data["kbps_channel"] = round($channel_kbps, 1);
-        }
-        $data["bits"] = $this->find($line, "|\((\d+) bit\)|");
-        if (! $data["bits"]) {
-            $data["bits"] = 16;
-        }
-        $data["hertz"] = $this->find($line, "|(\d\d\d\d\d) hz|");
-        if (! $data["hertz"]) {
-            $data["hertz"] = 48000;
-        }
-        $uncompressed = (int)$data["hertz"] * (int)$data["bits"] * (int)$data["channels"];
-        $data["compression"] = round($data["bps"] / $uncompressed, 3);
-        $data["compression_percent"] = round(100 * $data["bps"] / $uncompressed) . "%";
-        $data["quality"] = "high";
-        if ($data["hertz"] < 44000) {
-            $data["quality"] = "low";
-        }
-        if ($data["bits"] < 16) {
-            $data["quality"] = "low";
-        }
-        if ($data["compression"] < 0.1) {
-            $data["quality"] = "low";
-        }
-        $data["codec"] = $this->parse_codec($data["_raw"]);
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_video_line(string $line): array
-    {
-        $data = [];
-        $data["_raw"] = trim($this->find($line, "|Video:\s+(.*)|"));
-        $line = strtolower($line);
-        $data["size"] = $this->find($line, "|(\d\d+x\d\d+)|");
-        if ($data["size"]) {
-            list($w, $h) = explode("x", $data["size"]);
-            $data["width"] = (int)$w;
-            $data["height"] = (int)$h;
-            $data["pixels"] = (int)$w * (int)$h;
-            $data["dar"] = $this->find($line, "|dar ([\d\.:]+)|");
-            $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
-            switch ($data["aspect_ratio"]) {
-                case 1.78:
-                    $data["aspect_type"] = "hd";
-
-break;
-                case 1.90:
-                    $data["aspect_type"] = "dcp";
-
-break;
-                case 1.85:
-                    $data["aspect_type"] = "flat";
-
-break;
-                case 2.35:
-                case 2.39:
-                    $data["aspect_type"] = "scope";
-
-break;
-                case 1.33:
-                    $data["aspect_type"] = "tv";
-
-break;
-                case 1:
-                    $data["aspect_type"] = "square";
-
-break;
-                default:
-                    $data["aspect_type"] = "$w:$h";
-            }
-        }
-        $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
-        if (! $data["chroma"]) {
-            $data["chroma"] = $this->find($line, "|(rgb[\w]+)|");
-        }
-        if (! $data["chroma"]) {
-            $data["chroma"] = $this->find($line, "|(xyz[\w]+)|");
-        }
-        $data["fps"] = (double)$this->find($line, "|([\d\.]+) tbr|");
-        if (! $data["fps"]) {
-            $data["fps"] = (double)$this->find($line, "|([\d\.]+) fps|");
-        }
-        $data["kbps"] = (double)$this->find($line, "|(\d+) kb/s|");
-        if (isset($data["kbps"])) {
-            $data["bps"] = $data["kbps"] * 1000;
-        }
-        $data["codec"] = $this->parse_codec($data["_raw"]);
-        if (isset($data["fps"]) && isset($data["pixels"])) {
-            $uncompressed = $data["pixels"] * 24 * $data["fps"];
-            $data["compression"] = round($data["bps"] / $uncompressed, 3);
-            $data["compression_percent"] = round(100 * $data["bps"] / $uncompressed, 1) . "%";
-        }
-        ksort($data);
-
-        return $data;
-    }
-
-    private function parse_image_line(string $line): array
-    {
-        $data = [];
-        $data["_raw"] = trim($this->find($line, "|Video:\s+(.*)|"));
-        $line = strtolower($line);
-        $data["size"] = $this->find($line, "|(\d\d+x\d\d+)|");
-        if ($data["size"]) {
-            list($w, $h) = explode("x", $data["size"]);
-            $data["width"] = (int)$w;
-            $data["height"] = (int)$h;
-            $data["pixels"] = (int)$w * (int)$h;
-            $data["dar"] = $this->find($line, "|dar ([\d\.:]+)|");
-            $data["aspect_ratio"] = round((double)$w / (double)$h, 2);
-            switch ($data["aspect_ratio"]) {
-                case 1.78:
-                    $data["aspect_type"] = "hd";
-
-break;
-                case 1.90:
-                    $data["aspect_type"] = "dcp";
-
-break;
-                case 1.85:
-                    $data["aspect_type"] = "flat";
-
-break;
-                case 2.35:
-                case 2.39:
-                    $data["aspect_type"] = "scope";
-
-break;
-                case 1.33:
-                    $data["aspect_type"] = "tv";
-
-break;
-                case 1:
-                    $data["aspect_type"] = "square";
-
-break;
-                default:
-                    $data["aspect_type"] = "$w:$h";
+                case "data":
+                    $this->data=$meta["streams"][]=New DataStream($stream);
+                    break;
 
             }
         }
-        $data["chroma"] = $this->find($line, "|(yuv[\w]+)|");
-        if (! $data["chroma"]) {
-            $data["chroma"] = $this->find($line, "|(rgb[\w]+)|");
+
+        if($this->cache){
+            $this->cache->set($key,$meta,$cacheTime);
+            $this->logger->info("Cached saved for $key");
         }
-        if (! $data["chroma"]) {
-            $data["chroma"] = $this->find($line, "|(xyz[\w]+)|");
-        }
-        $data["kbps"] = (double)$this->find($line, "|(\d+) kb/s|");
-        if (isset($data["kbps"])) {
-            $data["bps"] = $data["kbps"] * 1000;
-        }
-        $data["codec"] = $this->parse_codec($data["_raw"]);
-        ksort($data);
-
-        return $data;
+        return $meta;
     }
 
-    private function parse_data_line(string $line): array
-    {
-        $data = [];
-        $data["_raw"] = trim($this->find($line, "|Data:\s+(.*)|"));
+    /*
+    [command] => Array
+        (
+            [binary] => Array
+                (
+                    [_raw] => ffprobe version 4.3.1-0york0~16.04 Copyright (c) 2007-2020 the FFmpeg developers
+                    [gcc_version] => 5.4.0
+                    [version] => 4.3.1
+                    [year] => 2020
+                    [file] => ffprobe
+                    [path] => /usr/bin/ffprobe
+                    [command] => 'ffprobe' -version
+                )
 
-        return $data;
-    }
+            [full] => 'ffprobe' -v quiet -print_format json -show_format -show_streams -i '/mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/example.mp4' 2>&1
+            [input] => Array
+                (
+                    [filename] => /mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/example.mp4
+                    [filesize] => 199160
+                    [modified] => 2020-11-16T08:35:25+00:00
+                    [changed] => 2020-11-16T08:47:25+00:00
+                )
 
-    // ----------------------------------------------------------------------------------------------------
+            [started_at] => 2020-12-08T14:32:30+00:00
+            [finished_at] => 2020-12-08T14:32:31+00:00
+            [duration] => 0.463
+            [return] => 0
+        )
 
-    public function get_file_meta(string $path): array
-    {
-        $data = [];
-        $data["name"] = basename($path);
-        $data["extension"] = strtolower(pathinfo($path, PATHINFO_EXTENSION));
-        $data["folder"] = pathinfo($path, PATHINFO_DIRNAME);
-        $data["size"] = filesize($path);
-        $data["mtime"] = filemtime($path);
-        $data["modification"] = date("c", filemtime($path));
-        $data["days"] = round((time() - filemtime($path)) / (3600 * 24), 2);
+    [result] => Array
+        (
+            [format] => Array
+                (
+                    [bit_rate] => 252314
+                    [duration] => 6.314667
+                    [filename] => /mnt/c/Users/forretp/Code/github/spx_media_analyzer/tests/sources/example.mp4
+                    [format_long_name] => QuickTime / MOV
+                    [format_name] => mov,mp4,m4a,3gp,3g2,mj2
+                    [nb_programs] => 0
+                    [nb_streams] => 2
+                    [probe_score] => 100
+                    [size] => 199160
+                    [start_time] => 0.000000
+                    [tags] => Array
+                        (
+                            [major_brand] => mp42
+                            [minor_version] => 0
+                            [compatible_brands] => mp42isomavc1
+                            [creation_time] => 2010-09-23T00:37:25.000000Z
+                            [encoder] => HandBrake 0.9.4 2009112300
+                        )
 
-        return $data;
-    }
+                )
 
-    public function split_on(string $text, string $pattern): array
-    {
-        return preg_split($pattern, $text);
-    }
+            [streams] => Array
+                (
+                    [0] => Array
+                        (
+                            [index] => 0
+                            [codec_name] => h264
+                            [codec_long_name] => H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10
+                            [profile] => Main
+                            [codec_type] => video
+                            [codec_time_base] => 3141/149000
+                            [codec_tag_string] => avc1
+                            [codec_tag] => 0x31637661
+                            [width] => 200
+                            [height] => 110
+                            [coded_width] => 208
+                            [coded_height] => 112
+                            [closed_captions] => 0
+                            [has_b_frames] => 1
+                            [sample_aspect_ratio] => 1:1
+                            [display_aspect_ratio] => 20:11
+                            [pix_fmt] => yuv420p
+                            [level] => 11
+                            [color_range] => tv
+                            [color_space] => smpte170m
+                            [color_transfer] => bt709
+                            [color_primaries] => smpte170m
+                            [chroma_location] => left
+                            [refs] => 1
+                            [is_avc] => true
+                            [nal_length_size] => 4
+                            [r_frame_rate] => 24/1
+                            [avg_frame_rate] => 74500/3141
+                            [time_base] => 1/90000
+                            [start_pts] => 0
+                            [start_time] => 0.000000
+                            [duration_ts] => 565380
+                            [duration] => 6.282000
+                            [bit_rate] => 74475
+                            [bits_per_raw_sample] => 8
+                            [nb_frames] => 149
+                            [disposition] => Array
+                                (
+                                    [default] => 1
+                                    [dub] => 0
+                                    [original] => 0
+                                    [comment] => 0
+                                    [lyrics] => 0
+                                    [karaoke] => 0
+                                    [forced] => 0
+                                    [hearing_impaired] => 0
+                                    [visual_impaired] => 0
+                                    [clean_effects] => 0
+                                    [attached_pic] => 0
+                                    [timed_thumbnails] => 0
+                                )
 
-    private function find(string $haystack, string $pattern): string
-    {
-        $nb = preg_match($pattern, $haystack, $matches);
-        if ($nb) {
-            return $matches[1];
-        }
+                            [tags] => Array
+                                (
+                                    [creation_time] => 2010-09-23T00:37:25.000000Z
+                                    [language] => und
+                                    [encoder] => JVT/AVC Coding
+                                )
 
-        return "";
-    }
+                        )
 
-    private function find_label(string $haystack, string $label, array &$array): string
-    {
-        /*
-         * $haystack =
-        major_brand     : qt
-        minor_version   : 512
-        compatible_brands: qt
-         */
-        $nb = preg_match("|$label\s*:\s+(.*)|", $haystack, $matches);
-        $value = "";
-        if ($nb) {
-            $value = $matches[1];
-            if ($array) {
-                $array[$label] = $value;
-            }
-        }
+                    [1] => Array
+                        (
+                            [index] => 1
+                            [codec_name] => aac
+                            [codec_long_name] => AAC (Advanced Audio Coding)
+                            [profile] => LC
+                            [codec_type] => audio
+                            [codec_time_base] => 1/48000
+                            [codec_tag_string] => mp4a
+                            [codec_tag] => 0x6134706d
+                            [sample_fmt] => fltp
+                            [sample_rate] => 48000
+                            [channels] => 1
+                            [channel_layout] => mono
+                            [bits_per_sample] => 0
+                            [r_frame_rate] => 0/0
+                            [avg_frame_rate] => 0/0
+                            [time_base] => 1/48000
+                            [start_pts] => 0
+                            [start_time] => 0.000000
+                            [duration_ts] => 303104
+                            [duration] => 6.314667
+                            [bit_rate] => 171029
+                            [max_bit_rate] => 201736
+                            [nb_frames] => 296
+                            [disposition] => Array
+                                (
+                                    [default] => 1
+                                    [dub] => 0
+                                    (...)
+                                    [timed_thumbnails] => 0
+                                )
 
-        return $value;
-    }
+                            [tags] => Array
+                                (
+                                    [creation_time] => 2010-09-23T00:37:25.000000Z
+                                    [language] => und
+                                )
+                        )
+                )
+        )
+)
+*/
 
-    private function parse_codec(string $text): string
-    {
-        // $text: "h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m/smpte170m/bt709), 200x110 [SAR 1:1 DAR 20:11], 74 kb/s, 23.72 fps, 24 tbr, 90k tbn, 48 tbc (default)"
-        $codec = "";
-        $comma = strpos($text, ",");
-        if ($comma > 0) {
-            $codec = substr($text, 0, $comma);
-            $codec = trim(preg_replace("#(\(.*\))#", "", $codec));
-        }
-        // $codec = "h264"
-        return $codec;
-    }
 }
