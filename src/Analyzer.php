@@ -22,6 +22,8 @@ class Analyzer
     public VideoStream $video;
     public DataStream $data;
     public ImageStream $image;
+    private bool $useLogger=false;
+    private bool $useCache=false;
 
     public function __construct(string $binary = "", LoggerInterface $logger = null, CacheInterface $cache = null)
     {
@@ -29,9 +31,11 @@ class Analyzer
 
         if ($logger) {
             $this->logger = $logger;
+            $this->useLogger=true;
         }
         if ($cache) {
             $this->cache = $cache;
+            $this->useCache=true;
         }
     }
 
@@ -41,11 +45,10 @@ class Analyzer
             throw new Exception("Media file [$path] does not exist");
         }
         $key = "probe-" . $path;
-        if ($this->cache && $this->cache->has($key)) {
+        if ($this->useCache && $this->cache->has($key)) {
             $meta = $this->cache->get($key);
             if ($meta) {
                 $meta["from_cache"] = date("c");
-
                 return $meta;
             }
         }
@@ -81,7 +84,7 @@ class Analyzer
             }
         }
 
-        if ($this->cache) {
+        if ($this->useCache) {
             $this->cache->set($key, $meta, $cacheTime);
             $this->logger->info("Cached saved for $key");
         }
