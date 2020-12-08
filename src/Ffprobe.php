@@ -4,7 +4,6 @@
 namespace Brightfish\SpxMediaAnalyzer;
 
 use Exception;
-use function PHPUnit\Framework\throwException;
 
 class Ffprobe
 {
@@ -12,50 +11,51 @@ class Ffprobe
     {
         // this assumes that ffprobe executable is in the path somewhere
         $this->binary = "ffprobe";
-        if($binary){
-            if(!file_exists($binary)){
+        if ($binary) {
+            if (! file_exists($binary)) {
                 throw new Exception("Program [$binary] not found");
             }
             $this->$binary = $binary;
         }
         $commandParts = [];
         $commandParts[] = escapeshellarg($this->binary);
-        $commandParts[]="-version";
+        $commandParts[] = "-version";
         $command = implode(" ", $commandParts);
-        $output=[];
-        $return=0;
+        $output = [];
+        $return = 0;
         exec($command, $output, $return);
-        $this->version=$this->parse_ffprobe_version(implode("\n",$output));
-        $this->version["file"]=basename($this->binary);
-        $this->version["path"]=$this->binary;
-        $this->version["command"]=$command;
-        if(!file_exists($this->binary) && pathinfo($this->binary,PATHINFO_DIRNAME ) == "."){
+        $this->version = $this->parse_ffprobe_version(implode("\n", $output));
+        $this->version["file"] = basename($this->binary);
+        $this->version["path"] = $this->binary;
+        $this->version["command"] = $command;
+        if (! file_exists($this->binary) && pathinfo($this->binary, PATHINFO_DIRNAME) == ".") {
             // $this->binary = ffprobe
-            $path="";
-            if(stripos(PHP_OS, 'WIN') === 0){
+            $path = "";
+            if (stripos(PHP_OS, 'WIN') === 0) {
                 // running on windows
-                exec("where $this->binary",$path);
+                exec("where $this->binary", $path);
             } else {
                 // running on Linux/MacOS
-                exec("which $this->binary",$path);
+                exec("which $this->binary", $path);
             }
-            if(isset($path[0])){
-                $this->version["path"]=$path[0];
+            if (isset($path[0])) {
+                $this->version["path"] = $path[0];
             }
         }
     }
 
-    public function probe(string $inputFile){
-        if(!file_exists($inputFile)){
+    public function probe(string $inputFile)
+    {
+        if (! file_exists($inputFile)) {
             throw new Exception("File [$inputFile] not found");
         }
         $commandParts = [];
-        $commandParts[] = escapeshellarg ($this->binary);
-        $commandParts[]="-v quiet"; // don't show banner or raw info
-        $commandParts[]="-print_format json"; // show all info as JSON
-        $commandParts[]="-show_format"; // include container info
-        $commandParts[]="-show_streams"; // include container info
-        $commandParts[] = "-i " . escapeshellarg ($inputFile);
+        $commandParts[] = escapeshellarg($this->binary);
+        $commandParts[] = "-v quiet"; // don't show banner or raw info
+        $commandParts[] = "-print_format json"; // show all info as JSON
+        $commandParts[] = "-show_format"; // include container info
+        $commandParts[] = "-show_streams"; // include container info
+        $commandParts[] = "-i " . escapeshellarg($inputFile);
         $commandParts[] = "2>&1";
         $command = implode(" ", $commandParts);
 
@@ -65,8 +65,8 @@ class Ffprobe
         $data["command"]["input"] = [
             "filename" => $inputFile,
             "filesize" => filesize($inputFile), // TODO: check if it works for > 4GB files
-            "modified" => date("c",filemtime($inputFile)),
-            "changed" => date("c",filectime($inputFile)),
+            "modified" => date("c", filemtime($inputFile)),
+            "changed" => date("c", filectime($inputFile)),
         ];
 
         $data["command"]["started_at"] = date("c");
@@ -77,9 +77,12 @@ class Ffprobe
         $duration = round($t1 - $t0, 3);
         $data["command"]["duration"] = $duration;
         $data["command"]["return"] = $return;
-        $data["result"]=json_decode(implode("\n",$output),true);
+        $data["result"] = json_decode(implode("\n", $output), true);
         ksort($data["result"]);
-        if(isset($data["result"]["format"]))    ksort($data["result"]["format"]);
+        if (isset($data["result"]["format"])) {
+            ksort($data["result"]["format"]);
+        }
+
         return $data;
         /*
 
@@ -114,7 +117,7 @@ class Ffprobe
         $data["year"] = $this->find($text, "|20\d\d-(\d\d\d\d)|");
         $data["gcc_version"] = $this->find($text, "|built with gcc ([\d\.]+)|");
         ksort($data);
+
         return $data;
     }
-
 }

@@ -20,7 +20,7 @@ class Ffmpeg
     {
         // this assumes that ffmpeg executable is in the path somewhere
         $this->binary = "ffmpeg";
-        if($binary){
+        if ($binary) {
             $this->useBinary($binary);
         }
         $this->cache_expiration = 3600;

@@ -36,5 +36,4 @@ class FfprobeTest extends TestCase
         print_r($output);
         $this->assertGreaterThan(0, count($output["result"]["streams"]), "stream count");
     }
-
 }
