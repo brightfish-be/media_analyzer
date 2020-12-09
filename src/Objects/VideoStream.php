@@ -14,6 +14,86 @@ class VideoStream extends AbstractStream
      * @var mixed|null
      */
     private $duration;
+    /**
+     * @var mixed|null
+     */
+    private $aspect_ratio_number;
+    /**
+     * @var mixed|null
+     */
+    private $coded_height;
+    /**
+     * @var mixed|null
+     */
+    private $coded_width;
+    /**
+     * @var mixed|null
+     */
+    private $height;
+    /**
+     * @var mixed|null
+     */
+    private $max_bit_rate;
+    /**
+     * @var mixed|null
+     */
+    private $nb_frames;
+    /**
+     * @var mixed|null
+     */
+    private $width;
+    /**
+     * @var mixed|null
+     */
+    private $aspect_ratio;
+    /**
+     * @var mixed|null
+     */
+    private $aspect_type;
+    /**
+     * @var mixed|null
+     */
+    private $avg_frame_rate;
+    /**
+     * @var mixed|null
+     */
+    private $chroma_location;
+    /**
+     * @var mixed|null
+     */
+    private $codec_long_name;
+    /**
+     * @var mixed|null
+     */
+    private $codec_name;
+    /**
+     * @var mixed|null
+     */
+    private $codec_tag;
+    /**
+     * @var mixed|null
+     */
+    private $codec_tag_string;
+    /**
+     * @var mixed|null
+     */
+    private $codec_time_base;
+    /**
+     * @var mixed|null
+     */
+    private $codec_type;
+    /**
+     * @var mixed|null
+     */
+    private $orientation;
+    /**
+     * @var mixed|null
+     */
+    private $pix_fmt;
+    /**
+     * @var mixed|null
+     */
+    private $display_aspect_ratio;
 
     public function __construct(array $metadata)
     {
