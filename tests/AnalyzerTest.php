@@ -106,7 +106,6 @@ class AnalyzerTest extends TestCase
         $this->assertIsNumeric($analyzer->container->size);
         $this->assertIsNumeric($analyzer->container->start_time);
         $this->assertNotEmpty($analyzer->container->tags);
-
     }
 
     public function testVideoProperties()
@@ -162,5 +161,4 @@ class AnalyzerTest extends TestCase
         $this->assertNotEmpty($analyzer->audio->sample_fmt);
         $this->assertNotEmpty($analyzer->audio->time_base);
     }
-
 }
