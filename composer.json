@@ -1,6 +1,6 @@
 {
     "name": "brightfish-be/media_analyzer",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "description": "Analyze video,audio,image files (with ffmpeg)",
     "keywords": [
         "cinemapub",
