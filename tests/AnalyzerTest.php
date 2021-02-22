@@ -113,6 +113,7 @@ class AnalyzerTest extends TestCase
     {
         $analyzer = new Analyzer("", $this->logger, $this->cache);
         $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.mp4");
+        //print_r($analyzer->video);
 
         $this->assertIsNumeric($analyzer->video->aspect_ratio_number);
         $this->assertIsNumeric($analyzer->video->coded_height);
@@ -143,7 +144,6 @@ class AnalyzerTest extends TestCase
     {
         $analyzer = new Analyzer("", $this->logger, $this->cache);
         $analyzer->meta("$this->exampleFolder/sources/big_buck_bunny5.mp4");
-        print_r($analyzer->audio);
 
         $this->assertIsNumeric($analyzer->audio->bit_rate);
         $this->assertIsNumeric($analyzer->audio->bits_per_sample);

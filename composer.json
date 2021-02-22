@@ -18,8 +18,9 @@
     "require": {
         "php": "^7.4",
         "ext-json": "*",
-        "illuminate/support": "^8.15",
-        "sabre/cache": "^1.0"
+        "illuminate/support": "^7|^8.15",
+        "sabre/cache": "^1.0",
+      "ext-simplexml": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
