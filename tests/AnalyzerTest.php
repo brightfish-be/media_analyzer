@@ -1,8 +1,8 @@
 <?php
 
-namespace Brightfish\SpxMediaAnalyzer\Tests;
+namespace Brightfish\MediaAnalyzer\Tests;
 
-use Brightfish\SpxMediaAnalyzer\Analyzer;
+use Brightfish\MediaAnalyzer\Analyzer;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Sabre\Cache\Memory;

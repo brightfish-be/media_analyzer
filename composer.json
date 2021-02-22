@@ -1,12 +1,16 @@
 {
-    "name": "cinemapub/spx_media_analyzer",
+    "name": "brightfish-be/media_analyzer",
     "version": "2.0.1",
     "description": "Analyze video,audio,image files (with ffmpeg)",
     "keywords": [
         "cinemapub",
-        "spx_media_analyzer"
+        "media_analyzer",
+        "brightfish",
+        "media",
+        "audio",
+        "video"
     ],
-    "homepage": "https://github.com/cinemapub/spx_media_analyzer",
+    "homepage": "https://github.com/brightfish-be/media_analyzer",
     "license": "MIT",
     "authors": [
         {
@@ -20,7 +24,7 @@
         "ext-json": "*",
         "illuminate/support": "^7|^8.15",
         "sabre/cache": "^1.0",
-      "ext-simplexml": "*"
+        "ext-simplexml": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^2.16",
@@ -29,12 +33,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Brightfish\\SpxMediaAnalyzer\\": "src"
+            "Brightfish\\MediaAnalyzer\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Brightfish\\SpxMediaAnalyzer\\Tests\\": "tests"
+            "Brightfish\\MediaAnalyzer\\Tests\\": "tests"
         }
     },
     "scripts": {

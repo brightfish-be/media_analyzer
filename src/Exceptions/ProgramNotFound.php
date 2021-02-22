@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brightfish\SpxMediaAnalyzer\Exceptions;
+namespace Brightfish\MediaAnalyzer\Exceptions;
 
 use Exception;
 

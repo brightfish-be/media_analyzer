@@ -1,12 +1,12 @@
 <?php
-// Author: Peter Forret (cinemapub, p.forret@brightfish.be)
-namespace Brightfish\SpxMediaAnalyzer;
+// Author: Peter Forret ( p.forret@brightfish.be)
+namespace Brightfish\MediaAnalyzer;
 
-use Brightfish\SpxMediaAnalyzer\Objects\AudioStream;
-use Brightfish\SpxMediaAnalyzer\Objects\ContainerStream;
-use Brightfish\SpxMediaAnalyzer\Objects\DataStream;
-use Brightfish\SpxMediaAnalyzer\Objects\ImageStream;
-use Brightfish\SpxMediaAnalyzer\Objects\VideoStream;
+use Brightfish\MediaAnalyzer\Objects\AudioStream;
+use Brightfish\MediaAnalyzer\Objects\ContainerStream;
+use Brightfish\MediaAnalyzer\Objects\DataStream;
+use Brightfish\MediaAnalyzer\Objects\ImageStream;
+use Brightfish\MediaAnalyzer\Objects\VideoStream;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;

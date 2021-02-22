@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brightfish\SpxMediaAnalyzer;
+namespace Brightfish\MediaAnalyzer;
 
 use Illuminate\Support\Carbon;
 

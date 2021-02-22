@@ -1,14 +1,14 @@
 # Analyze video,audio,image files (with ffmpeg)
 
 Github: 
-![GitHub tag](https://img.shields.io/github/v/tag/cinemapub/spx_media_analyzer)
-![Tests](https://github.com/cinemapub/spx_media_analyzer/workflows/Run%20Tests/badge.svg)
-![Psalm](https://github.com/cinemapub/spx_media_analyzer/workflows/Detect%20Psalm%20warnings/badge.svg)
-![Styling](https://github.com/cinemapub/spx_media_analyzer/workflows/Check%20&%20fix%20styling/badge.svg)
+![GitHub tag](https://img.shields.io/github/v/tag/brightfish-be/media_analyzer)
+![Tests](https://github.com/brightfish-be/media_analyzer/workflows/Run%20Tests/badge.svg)
+![Psalm](https://github.com/brightfish-be/media_analyzer/workflows/Detect%20Psalm%20warnings/badge.svg)
+![Styling](https://github.com/brightfish-be/media_analyzer/workflows/Check%20&%20fix%20styling/badge.svg)
 
 Packagist: 
-[![Packagist Version](https://img.shields.io/packagist/v/cinemapub/spx_media_analyzer.svg?style=flat-square)](https://packagist.org/packages/cinemapub/spx_media_analyzer)
-[![Packagist Downloads](https://img.shields.io/packagist/dt/cinemapub/spx_media_analyzer.svg?style=flat-square)](https://packagist.org/packages/cinemapub/spx_media_analyzer)
+[![Packagist Version](https://img.shields.io/packagist/v/brightfish-be/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/brightfish-be/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
 
 Analyze video,audio,image files (with ffmpeg)
 
@@ -19,13 +19,13 @@ Analyze video,audio,image files (with ffmpeg)
 You can install the package via composer:
 
 ```bash
-composer require cinemapub/spx_media_analyzer
+composer require brightfish-be/media_analyzer
 ```
 
 ## Usage
 
 ``` php
-use Brightfish\SpxMediaAnalyzer\Analyzer;
+use Brightfish\MediaAnalyzer\Analyzer;
 
 $obj = new Analyzer();
 // or

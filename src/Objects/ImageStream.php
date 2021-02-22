@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brightfish\SpxMediaAnalyzer\Objects;
+namespace Brightfish\MediaAnalyzer\Objects;
 
 class ImageStream extends AbstractStream
 {

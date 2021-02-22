@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Brightfish\SpxMediaAnalyzer\Objects;
+namespace Brightfish\MediaAnalyzer\Objects;
 
 use Illuminate\Support\Str;
 use JsonSerializable;

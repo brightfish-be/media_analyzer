@@ -1,9 +1,9 @@
 <?php
 
-namespace Brightfish\SpxMediaAnalyzer\Tests;
+namespace Brightfish\MediaAnalyzer\Tests;
 
 use \Exception;
-use Brightfish\SpxMediaAnalyzer\Ffprobe;
+use Brightfish\MediaAnalyzer\Ffprobe;
 use PHPUnit\Framework\TestCase;
 
 class FfprobeTest extends TestCase
