@@ -86,7 +86,7 @@ class Analyzer
     protected function parseRawData(array $raw): array
     {
         $meta = [
-            'streams' => []
+            'streams' => [],
         ];
 
         $this->container = new ContainerStream($raw["result"]["format"]);
