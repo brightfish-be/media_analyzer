@@ -30,11 +30,12 @@ class DcpProbe
         $data["command"]["started_at"] = date("c");
         $t0 = microtime(true);
 
-        foreach($cpl_body->children() as $cpl_tag){
-            $tag_name=$cpl_tag->getName();
-            switch($tag_name){
+        foreach ($cpl_body->children() as $cpl_tag) {
+            $tag_name = $cpl_tag->getName();
+            switch ($tag_name) {
                 case "Id":
                     $data["uuid"] = str_replace("urn:uuid:", "", (string)$cpl_tag);
+
                     break;
 
                 case "AnnotationText":
@@ -44,15 +45,17 @@ class DcpProbe
                 case "Issuer":
                 case "RatingList":
                     $data[$tag_name] = (string)$cpl_tag;
+
                     break;
 
                 case "IssueDate":
                     $data[$tag_name] = Carbon::parse($cpl_tag);
+
                     break;
 
             }
         }
-        if(isset($cpl_body->ReelList)){
+        if (isset($cpl_body->ReelList)) {
             $data["total_reels"] = count($cpl_body->ReelList);
             $data["total_frames"] = 0;
             foreach ($cpl_body->ReelList->Reel as $reel) {
