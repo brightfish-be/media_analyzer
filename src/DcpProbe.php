@@ -49,7 +49,7 @@ class DcpProbe
                     break;
 
                 case "IssueDate":
-                    $data[$tag_name] = Carbon::parse($cpl_tag);
+                    $data[$tag_name] = Carbon::parse((string)$cpl_tag);
 
                     break;
 
@@ -70,9 +70,9 @@ class DcpProbe
                         $data["frame_rate"] = (string)$asset->MainPicture->FrameRate;
                         $fps_parts = explode(' ', $data["frame_rate"]);
                         if (count($fps_parts) == 2) {
-                            $data["fps"] = round($fps_parts[0] / $fps_parts[1], 3);
+                            $data["fps"] = round((int)$fps_parts[0] / (int)$fps_parts[1], 3);
                         } else {
-                            $data["fps"] = round($data["frame_rate"], 3);
+                            $data["fps"] = round((int)$data["frame_rate"], 3);
                         }
                         $data["frames"] = (int)$asset->MainPicture->Duration;
                         $data["total_frames"] += $data["frames"];
