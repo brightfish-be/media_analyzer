@@ -86,6 +86,7 @@ class Analyzer
     protected function parseRawData(array $raw): array
     {
         $meta = [
+            'command' => $raw['command'],
             'streams' => [],
         ];
 
