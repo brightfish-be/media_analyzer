@@ -45,22 +45,53 @@ class Analyzer
             throw new Exception("Media file [$path] does not exist");
         }
         $key = "probe-" . $path;
-        if ($this->useCache && $this->cache->has($key)) {
-            $meta = $this->cache->get($key);
-            if ($meta) {
-                $meta["from_cache"] = date("c");
 
-                return $meta;
+        if ($this->useCache && $this->cache->has($key)) {
+            if ($data = $this->cache->get($key)) {
+                return $this->parseRawData($data);
             }
         }
+
         $data = $this->probe->probe($path);
+
         if (! $data || ! isset($data["result"])) {
             return [];
         }
-        $meta = [];
-        $this->container = new ContainerStream($data["result"]["format"]);
-        $meta["streams"] = [];
-        foreach ($data["result"]["streams"] as $stream) {
+
+        $meta = $this->parseRawData($data);
+
+        if ($this->useCache) {
+            # Cache the raw data.
+            $this->cache($key, $data, $cacheTime);
+        }
+
+        return $meta;
+    }
+
+    /**
+     * @param string $key
+     * @param array $raw
+     * @param int $ttl
+     */
+    protected function cache(string $key, array $raw, int $ttl): void
+    {
+        $this->cache->set($key, $raw, $ttl);
+        $this->logger->info("Cached saved for $key");
+    }
+
+    /**
+     * @param array $raw
+     * @return array[]
+     */
+    protected function parseRawData(array $raw): array
+    {
+        $meta = [
+            'streams' => []
+        ];
+
+        $this->container = new ContainerStream($raw["result"]["format"]);
+
+        foreach ($raw["result"]["streams"] as $stream) {
             switch ($stream["type"]) {
                 case "audio":
                     $this->audio = $meta["streams"][] = new AudioStream($stream);
@@ -83,11 +114,6 @@ class Analyzer
                     break;
 
             }
-        }
-
-        if ($this->useCache) {
-            $this->cache->set($key, $meta, $cacheTime);
-            $this->logger->info("Cached saved for $key");
         }
 
         return $meta;
