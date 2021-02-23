@@ -1,5 +1,5 @@
 {
-    "name": "brightfish-be/media_analyzer",
+    "name": "brightfish/media_analyzer",
     "version": "2.1.1",
     "description": "Analyze video,audio,image files (with ffmpeg)",
     "keywords": [
