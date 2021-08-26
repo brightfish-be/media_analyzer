@@ -17,11 +17,12 @@ class Analyzer
     private CacheInterface $cache;
     private LoggerInterface $logger;
 
-    public ContainerStream $container;
-    public AudioStream $audio;
-    public VideoStream $video;
-    public DataStream $data;
-    public ImageStream $image;
+    public ?ContainerStream $container = null;
+    public ?AudioStream $audio = null;
+    public ?VideoStream $video = null;
+    public ?DataStream $data = null;
+    public ?ImageStream $image = null;
+
     private bool $useLogger = false;
     private bool $useCache = false;
 
