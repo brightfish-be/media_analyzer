@@ -7,8 +7,8 @@ Github:
 ![Styling](https://github.com/brightfish-be/media_analyzer/workflows/Check%20&%20fix%20styling/badge.svg)
 
 Packagist: 
-[![Packagist Version](https://img.shields.io/packagist/v/brightfish-be/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
-[![Packagist Downloads](https://img.shields.io/packagist/dt/brightfish-be/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
+[![Packagist Version](https://img.shields.io/packagist/v/brightfish/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
+[![Packagist Downloads](https://img.shields.io/packagist/dt/brightfish/media_analyzer.svg?style=flat-square)](https://packagist.org/packages/brightfish-be/media_analyzer)
 
 Analyze video,audio,image files (with ffmpeg)
 
@@ -19,7 +19,7 @@ Analyze video,audio,image files (with ffmpeg)
 You can install the package via composer:
 
 ```bash
-composer require brightfish-be/media_analyzer
+composer require brightfish/media_analyzer
 ```
 
 ## Usage
