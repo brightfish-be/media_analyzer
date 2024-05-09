@@ -3,7 +3,7 @@
 
 namespace Brightfish\MediaAnalyzer;
 
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 
 class DcpProbe
 {

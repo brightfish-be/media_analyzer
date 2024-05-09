@@ -20,16 +20,16 @@
         }
     ],
     "require": {
-        "php": "^7.4|^8.0",
+        "php": "^8.0",
         "ext-json": "*",
-        "illuminate/support": "^7|^8.15|^9.0|^10.0",
-        "sabre/cache": "^1.0",
-        "ext-simplexml": "*"
+        "ext-simplexml": "*",
+        "nesbot/carbon": "^2.72",
+        "psr/simple-cache": "^3.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.16",
+        "friendsofphp/php-cs-fixer": "^v3.56",
         "phpunit/phpunit": "^9.0",
-        "vimeo/psalm": "^4.1"
+        "vimeo/psalm": "^5.2"
     },
     "autoload": {
         "psr-4": {
@@ -42,10 +42,9 @@
         }
     },
     "scripts": {
+        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes",
         "psalm": "vendor/bin/psalm",
-        "test": "vendor/bin/phpunit --testdox",
-        "test-coverage": "vendor/bin/phpunit --coverage-html coverage",
-        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes"
+        "test": "vendor/bin/phpunit --coverage-html tests/coverage --testdox"
     },
     "config": {
         "sort-packages": true

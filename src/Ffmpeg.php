@@ -3,11 +3,11 @@
 
 namespace Brightfish\MediaAnalyzer;
 
+use Brightfish\MediaAnalyzer\Helpers\InMemoryCache;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Psr\SimpleCache\CacheInterface;
-use Sabre\Cache\Memory;
 
 class Ffmpeg
 {
@@ -25,7 +25,7 @@ class Ffmpeg
         }
         $this->cache_expiration = 3600;
         $this->logger = new NullLogger();
-        $this->cache = new Memory();
+        $this->cache = new InMemoryCache();
     }
 
     public function useBinary(string $path): self

@@ -34,7 +34,8 @@ class Ffprobe
         $this->version["command"] = $command;
         if (! file_exists($this->binary) && pathinfo($this->binary, PATHINFO_DIRNAME) == ".") {
             // $this->binary = ffprobe
-            $path = "";
+            $path = [];
+
             if (stripos(PHP_OS, 'WIN') === 0) {
                 // running on windows
                 exec("where $this->binary", $path);
@@ -42,6 +43,7 @@ class Ffprobe
                 // running on Linux/MacOS
                 exec("which $this->binary", $path);
             }
+
             if (isset($path[0])) {
                 $this->version["path"] = $path[0];
             }
